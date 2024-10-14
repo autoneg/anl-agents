@@ -1,0 +1,15 @@
+[project]
+name = "anl-agents"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["anl", "tensorflow", "torch"]
+dev-dependencies = [
+    "pytest",
+    "hypothesis"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
