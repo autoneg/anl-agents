@@ -103,7 +103,13 @@ class AwesomeNegotiator(SAONegotiator):
             for o in self.opponent_history[round(-0.2 * len(self.opponent_history)) :]
         ]
         # We consider the last 3% of the negotation as the final offers, or the final round in smaller negotations
-        end_game = state.relative_time >= 0.97 or state.step + 1 == self.nmi.n_steps
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        end_game = state.relative_time >= 0.97 or state.step + 1 == nsteps__
 
         # Accept a proposal under the following conditions:
         # The offer is better than the one that we are about to propose or the negotation is almost finished
@@ -227,7 +233,13 @@ class IngoNegotiator(SAONegotiator):
 
         self.initial_proposal = None
         self.initial_proposal_opp = None
-        self.total_steps = self.nmi.n_steps
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        self.total_steps = nsteps__
 
         self.partner_rv_prob = [0] * self.RV_granularity
         self.partner_rv_prob[0] = 1
@@ -296,7 +308,13 @@ class IngoNegotiator(SAONegotiator):
             for o in self.opponent_history[round(-0.2 * len(self.opponent_history)) :]
         ]
         # We consider the last 3% of the negotation as the final offers
-        end_game = state.relative_time >= 0.97 or state.step + 1 == self.nmi.n_steps
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        end_game = state.relative_time >= 0.97 or state.step + 1 == nsteps__
 
         # Never accept a proposal that is worse than our reservation value
         if self.ufun(offer) < self.ufun.reserved_value:
@@ -325,7 +343,12 @@ class IngoNegotiator(SAONegotiator):
         return np.argmin(dist_2)
 
     def current_phase(self, state):
-        percentage_complete = state.step / self.nmi.n_steps
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        percentage_complete = state.step / nsteps__
         if percentage_complete < 0.79:
             return 0
         elif percentage_complete < 0.97:
@@ -356,7 +379,13 @@ class IngoNegotiator(SAONegotiator):
         our_offers = []
         # Hyper parameters
         modifier = 0.5
-        chaos_threshold = 0.3 + (state.step / self.nmi.n_steps)
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        chaos_threshold = 0.3 + (state.step / nsteps__)
         # Get all possible offers
         pareto_points = self.pareto_calculations()
 
@@ -545,9 +574,13 @@ class IngoNegotiator(SAONegotiator):
             self.lambda_opp = np.log(np.max([ratio, 1])) / np.log(log_base)
 
             # compute discount factor using (10)
-            self.discount_ratio = (
-                self.current_step / self.nmi.n_steps
-            ) ** self.lambda_opp
+
+            nsteps__ = (
+                self.nmi.n_steps
+                if self.nmi.n_steps
+                else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            )
+            self.discount_ratio = (self.current_step / nsteps__) ** self.lambda_opp
 
             # Compute Prob(proposal opp at t | res val of opp i ) using (9) for all i
             probability_proposal_given_rv = []

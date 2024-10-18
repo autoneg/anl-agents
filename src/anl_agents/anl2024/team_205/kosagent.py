@@ -115,8 +115,13 @@ class KosAgent(SAONegotiator):
             return True
 
         # 最後の一回になったら強制的に受け入れる
-        assert self.nmi.n_steps is not None
-        if self.nmi.n_steps - self.step == 1:
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        if nsteps__ - self.step == 1:
             if self.ufun(offer) > self.ufun.reserved_value:
                 return True
 
@@ -162,8 +167,14 @@ class KosAgent(SAONegotiator):
         # ステップ数の増加
         self.step = self.step + 1
         # 現在時刻の更新
-        assert self.nmi.n_steps is not None
-        self.current_time = self.step / self.nmi.n_steps
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        # assert self.nmi.n_steps is not None
+        self.current_time = self.step / nsteps__
 
 
 if __name__ == "__main__":

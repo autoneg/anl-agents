@@ -88,7 +88,13 @@ class Group5(SAONegotiator):
         self.partner_reserved_value = 0
         self.opponent_offer_history = list()
         self.opponent_offer_history2 = list()
-        self.deadline = self.ami.n_steps  # Only takes into account a step limit, not time limit. Should it be expanded?
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        self.deadline = nsteps__  # Only takes into account a step limit, not time limit. Should it be expanded?
         self.opponent_rv_range = [0.0, 1.0]
         self.n_estimation_areas = 100
         self.estimation_areas = list()
@@ -192,7 +198,13 @@ class Group5(SAONegotiator):
         because the last part rejects all the offers that are really bad,
         it is safe to accept the last offer that is made in the negotiation.
         """
-        if self.nmi.n_steps == state.step:
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        if nsteps__ == state.step:
             return True
 
         """
@@ -217,7 +229,13 @@ class Group5(SAONegotiator):
         It will reject any offer that is not in the top of offers that we have recieved so far.
         This window will shrink as the negotiation goes on.
         """
-        time_remaining = self.nmi.n_steps - state.step
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        time_remaining = nsteps__ - state.step
         if state.relative_time > 0.9:
             for x in self.opponent_offer_history2[-time_remaining:]:
                 if x > self.ufun(offer):
@@ -286,10 +304,16 @@ class Group5(SAONegotiator):
         """
 
         # Adjusted time function
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
         if self.first_bidder:
-            time = state.step / self.nmi.n_steps
+            time = state.step / nsteps__
         else:
-            time = (state.step + 1) / self.nmi.n_steps
+            time = (state.step + 1) / nsteps__
 
         # Calculate the concession rate based on function described in paper
         power = 1 / self.psi
@@ -308,10 +332,16 @@ class Group5(SAONegotiator):
         """
 
         # Adjusted time function
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
         if self.first_bidder:
-            time = state.step / self.nmi.n_steps
+            time = state.step / nsteps__
         else:
-            time = (state.step + 1) / self.nmi.n_steps
+            time = (state.step + 1) / nsteps__
 
         # Return concession if lower part of ratio function is 0
         if concession == 0 or time == 1:

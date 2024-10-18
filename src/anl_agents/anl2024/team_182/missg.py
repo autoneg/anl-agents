@@ -147,11 +147,14 @@ class MissG(SAONegotiator):
             bool: True if the offer should be accepted, False otherwise.
         """
         try:
-            if (state.step / self.nmi.n_steps) < 0.9:
+            if (
+                self.nmi.n_steps is not None and state.step / self.nmi.n_steps < 0.9
+            ) or (self.nmi.n_steps is None and state.relative_time < 0.9):
                 return False
             # Calculate the acceptance threshold based on the current state, which includes the negotiation phase, the offer's utility and reservation value
+            assert self.ufun and self.opponent_ufun
             offer = state.current_offer
-            offer_utility = self.ufun(offer)
+            offer_utility = float(self.ufun(offer))
             assert self.ufun
             acceptance_threshold = self.update_acceptance_threshold()
             threshold = (
@@ -195,6 +198,7 @@ class MissG(SAONegotiator):
         """
         # By definition, outcome is pareto optimal when utility of either
         # agent cannot be increase without decreasing the utility of the other.
+        assert self.ufun and self.opponent_ufun
         for other_outcome in self.rational_outcomes:
             if float(self.ufun(other_outcome)) > float(self.ufun(outcome)) and float(
                 self.opponent_ufun(other_outcome)
@@ -215,7 +219,7 @@ class MissG(SAONegotiator):
                 pareto_front.append(outcome)
 
         # Sort the pareto front from best to worst utility for our agent
-        pareto_front.sort(key=lambda x: self.ufun(x), reverse=True)
+        pareto_front.sort(key=lambda x: float(self.ufun(x)), reverse=True)  # type: ignore
         return pareto_front
 
     def _get_explore_domain(self, state: SAOState) -> list:
@@ -229,10 +233,16 @@ class MissG(SAONegotiator):
         """
         # Set the possible region of exploration domain
         # Vertical threshold that slide to the left (decrease over time).
+        assert self.ufun and self.opponent_ufun
+        rel_ = (
+            state.step / self.nmi.n_steps
+            if self.nmi.n_steps is not None
+            else state.relative_time
+        )
         explore_threshold_vertical = (
             1  # Initial threshold
             - (1 - self.ufun.reserved_value)  # adjust range
-            * (state.step / self.nmi.n_steps) ** 2  # exponential decay
+            * (rel_) ** 2  # exponential decay
         )
         self.explore_threshold_history.append(explore_threshold_vertical)
 
@@ -240,7 +250,7 @@ class MissG(SAONegotiator):
         explore_threshold_horizontal = (
             0  # Initial threshold
             + self.partner_reserved_value  # adjust range
-            * (state.step / self.nmi.n_steps) ** 2  # exponential growth
+            * (rel_) ** 2  # exponential growth
         )
         # Select all outcomes that within the current threshold region
         explore_domain = sorted(
@@ -250,7 +260,7 @@ class MissG(SAONegotiator):
                 if (float(self.ufun(_)) > explore_threshold_vertical)
                 and (float(self.opponent_ufun(_)) < explore_threshold_horizontal)
             ],
-            key=lambda x: self.ufun(x) + self.opponent_ufun(x),
+            key=lambda x: float(self.ufun(x)) + float(self.opponent_ufun(x)),  # type: ignore
             reverse=True,
         )
 
@@ -290,13 +300,18 @@ class MissG(SAONegotiator):
         # (2) it want us to think that it have high reservation value
         # Either case, our estimation of opponent reservation value would be high.
         # So, we also want to try out reservation value that is below the estimation.
+        n_steps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps is not None
+            else min(self.nmi.time_limit * state.step / state.time, self.nmi.n_outcomes)
+        )
         adjusted_opp_res_val = (
             0  # minimum value
             + (self.partner_reserved_value)  # maximum value
             # exponentially grow reservation value from minimum to maximum
             * (
-                (state.step + 1 - self.nmi.n_steps * self.tactic_change_threshold)
-                / (self.nmi.n_steps * (1 - self.tactic_change_threshold))
+                (state.step + 1 - n_steps__ * self.tactic_change_threshold)
+                / (n_steps__ * (1 - self.tactic_change_threshold))
             )
             ** 2
         )
@@ -305,6 +320,7 @@ class MissG(SAONegotiator):
             adjusted_opp_res_val = self.partner_reserved_value / 2
 
         # Remove any offer that is below the reservation values.
+        assert self.ufun and self.opponent_ufun
         possible_offers = [
             _
             for _ in self.pareto_front
@@ -333,7 +349,13 @@ class MissG(SAONegotiator):
         # In the first phase, diverse set of bidding is offered to learn about
         # reservation value and strategy of the opponent as well as concealing
         # the strategy of our agent.
-        if state.step < self.nmi.n_steps * self.tactic_change_threshold:
+
+        n_steps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps is not None
+            else min(self.nmi.time_limit * state.step / state.time, self.nmi.n_outcomes)
+        )
+        if state.step < n_steps__ * self.tactic_change_threshold:
             bid = self._epsilon_greedy(self.explore_epsilon, state)
 
         # Phase 2: exploitation
@@ -385,6 +407,7 @@ class MissG(SAONegotiator):
         Return: 1 - if a concession is made.
                 0 - if no concession is made.
         """
+        assert self.opponent_ufun and self.ufun
         if self.opponent_ufun(state.current_offer) < self.opponent_ufun(
             self.previous_offer
         ):
@@ -397,6 +420,7 @@ class MissG(SAONegotiator):
         Return: 1 - if a concession is made.
                 0 - if no concession is made.
         """
+        assert self.opponent_ufun and self.ufun
         if self.ufun(current_bid) < self.ufun(self.previous_bid):
             self.agent_behavior_scores.append(1)
         else:
@@ -473,7 +497,7 @@ class MissG(SAONegotiator):
         # self.plot_acceptance_thresholds()
         # self.plot_explore_thresholds()
 
-        return super()._on_negotiation_end(state)
+        return super()._on_negotiation_end(state)  # type: ignore
 
 
 # if you want to do a very small test, use the parameter small=True here. Otherwise, you can use the default parameters.
