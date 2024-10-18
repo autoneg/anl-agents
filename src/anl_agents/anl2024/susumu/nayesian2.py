@@ -128,7 +128,13 @@ class Nayesian2(SAONegotiator):
         self.predicted_best_u = self.pair_utilities[0, 0]
 
         self.acceptable_utility = 1
-        self.total_steps = self.nmi.n_steps
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        self.total_steps = nsteps__
         self.proposed_offers = 0
         self.recieved_offers = 0
         # print('ufun_initilize')

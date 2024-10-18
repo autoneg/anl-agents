@@ -209,8 +209,13 @@ class UOAgent(SAONegotiator):
             offer_list = sorted(self.outcome_list[num1:num2+1], key=lambda x:(x[1], x[2]), reverse=True)
             offer, social_utility, my_utility, opponent_utility = offer_list[0]
             """
-            assert self.nmi.n_steps is not None
-            value = 1.0 - (1.0 - self.under) * ((self.step / self.nmi.n_steps) ** 5)
+            nsteps__ = (
+                self.nmi.n_steps
+                if self.nmi.n_steps
+                else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            )
+            # assert self.nmi.n_steps is not None
+            value = 1.0 - (1.0 - self.under) * ((self.step / nsteps__) ** 5)
             listing = map(lambda x: x[2], self.outcome_list)
             ufunlist = list(listing)
             num1 = self.getNearestValue(ufunlist, value + 0.02)

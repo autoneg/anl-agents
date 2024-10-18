@@ -178,7 +178,12 @@ class AgentRenting2024(SAONegotiator):
 
         # Update the reserved value of the opponent
         # See the function update_partner_reserved_value
-        if self.use_neural_network and state.step > math.floor(self.nmi.n_steps * 0.95):
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        if self.use_neural_network and state.step > math.floor(nsteps__ * 0.95):
             self.update_partner_reserved_value(state)
 
         # A failsafe for if something goes wrong. ANAC: if there are no outcomes (should in theory never happen)
@@ -219,8 +224,14 @@ class AgentRenting2024(SAONegotiator):
 
         # When we do not have the last offer and our last offer has been rejected, we accept the opponent's
         # last offer if it gives us more utility than our reservation value, as the alternative is no agreement
+
         elif not self.last_and_first_offer:
-            if state.step == self.nmi.n_steps - 1:
+            nsteps__ = (
+                self.nmi.n_steps
+                if self.nmi.n_steps
+                else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            )
+            if state.step == nsteps__ - 1:
                 self.debug_log("last step")
                 self.debug_log(self.ufun(offer))
 
@@ -259,10 +270,19 @@ class AgentRenting2024(SAONegotiator):
 
             # In the final step, we stop flatlining and offer an offer that we expect to be just above
             # the opponent's reservation value
-            if self.nmi.n_steps - 1 == state.step:
+
+            nsteps__ = (
+                self.nmi.n_steps
+                if self.nmi.n_steps
+                else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            )
+            assert self.opponent_ufun and self.ufun
+            if nsteps__ - 1 == state.step:
                 # Find the best offer for us that is at least better for the opponent
                 # than their RV, and which is better for us than our RV
-                if self.partner_reserved_value > self.opponent_ufun(self.last_bid):
+                if self.partner_reserved_value > float(
+                    self.opponent_ufun(self.last_bid)
+                ):
                     final_bid = None
                     for bid in self.rational_outcomes:
                         if self.opponent_ufun(bid) > self.partner_reserved_value and (
@@ -330,8 +350,14 @@ class AgentRenting2024(SAONegotiator):
         # we determine our offers depending on a concession curve
         else:
             # Variable assignments:
+
+            nsteps__ = (
+                self.nmi.n_steps
+                if self.nmi.n_steps
+                else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            )
             total_t = (
-                self.nmi.n_steps - 1
+                nsteps__ - 1
             )  # Total negotiation time. As the negotiation steps start at 0,
             # we substract 1 from the total amount of steps
             t = state.step  # The current step
@@ -396,8 +422,14 @@ class AgentRenting2024(SAONegotiator):
         )  # Here too we start by conceding to the nash point
         max_utility = self.ufun(self.sorted_rational_outcome[0])
         t = state.step
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+
         total_t = (
-            self.nmi.n_steps - 2
+            nsteps__ - 2
         )  # In the ANL tournament system, the person without the final offer does
         # one final offer which does not get accepted or rejected, hence the - 2 here
         e = 0.05  # Determines the pace of concession. Slightly more conceding than in last_offer
@@ -585,7 +617,12 @@ class AgentRenting2024(SAONegotiator):
 
             return A_bid_history
 
-        n_relevant_steps = max(100, math.floor(self.nmi.n_steps * 0.1))
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        n_relevant_steps = max(100, math.floor(nsteps__ * 0.1))
 
         if self.last_and_first_offer is True:
             past_offers = list(
@@ -655,7 +692,9 @@ class AgentRenting2024(SAONegotiator):
                 np.sum(np.diff(opp_bid_history[-n_relevant_steps:])),
                 concession_end_estimate,
                 # self.nmi.state.step,
-                self.nmi.state.step / self.nmi.n_steps,
+                self.nmi.state.step / self.nmi.n_steps
+                if self.nmi.n_steps
+                else self.nmi.state.relative_time,
                 # self.nmi.n_steps - self.nmi.state.step,
                 self.opp_nash_point,
                 certainty_minimum=self.nn_certainty_threshold,
@@ -729,7 +768,12 @@ class AgentRenting2024(SAONegotiator):
 
         sorted_L = sorted(L, key=lambda x: x[2], reverse=True)
 
-        for k in range(1, self.nmi.n_steps + 1):
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        for k in range(1, nsteps__ + 1):
             d_prime = 0.0
             w_prime = ()
             for bid in self.nmi.outcome_space:
@@ -757,9 +801,15 @@ class AgentRenting2024(SAONegotiator):
     def PBS(self, policy_1) -> deque:
         """Sort and find the best permutation"""
         policy = policy_1
-        for r in range(1, self.nmi.n_steps + 1):
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        for r in range(1, nsteps__ + 1):
             org_policy = policy
-            for k in range(0, self.nmi.n_steps):
+            for k in range(0, nsteps__):
                 if self.swap_check_neighbor(policy, k) > 0:
                     policy = self.swap(policy, k, k + 1)
             if policy == org_policy:
@@ -775,20 +825,23 @@ class AgentRenting2024(SAONegotiator):
             for outcome in self.nmi.outcome_space
         ]
 
-        for r in range(self.nmi.n_steps):
-            s = random.randint(0, self.nmi.n_steps)
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        for r in range(nsteps__):
+            s = random.randint(0, nsteps__)
             selected_offer = policy[s]
             reduced_os = outcomespace.remove(selected_offer)
             random.shuffle(reduced_os)
             replacement_offer = reduced_os[0]
             delta = self.replace_check(policy, replacement_offer, s)
 
-            if delta > 0 or random.randint(0, self.nmi.n_steps) > math.exp(
-                -delta / (0.05 * r)
-            ):
+            if delta > 0 or random.randint(0, nsteps__) > math.exp(-delta / (0.05 * r)):
                 policy = self.replace(policy, s, replacement_offer)
 
-            for i in range(0, self.nmi.n_steps + 1):
+            for i in range(0, nsteps__ + 1):
                 if i != s:
                     if self.swap_check(policy, i, s) > 0:
                         policy = self.swap(policy, i, s)
@@ -845,7 +898,13 @@ class AgentRenting2024(SAONegotiator):
         first_part = self.P[i] * (self.ufun(w) * self.opponent_ufun(w)) - (
             self.ufun(policy[i]) * self.opponent_ufun(policy[i])
         )
-        second_part = (self.S[self.nmi.n_steps] - self.S[i]) * (
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        second_part = (self.S[nsteps__] - self.S[i]) * (
             self.opponent_ufun(policy[i])
             - self.opponent(policy[w]) / (1 - self.opponent_ufun(policy[i]))
         )
