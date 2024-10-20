@@ -78,6 +78,8 @@ class AgentNyan(BaseAgent):
             for _, _, o in self.pareto
             if self.my_ufun_typesafe(o) > self.my_ufun_typesafe.reserved_value
         ]
+        self.opponent_worst_outcome__ = None
+        self.best_offer__ = None
 
     def should_accept(self, state: SAOState) -> bool:
         # self.opponent_minimum_util = min(
@@ -125,7 +127,9 @@ class AgentNyan(BaseAgent):
             return reserved_value_delta * (1 - state.relative_time)
 
     def get_first_offer(self) -> Outcome:
-        return self.my_ufun_typesafe.best()
+        if self.best_offer__ is None:
+            self.best_offer__ = self.my_ufun_typesafe.best()
+        return self.best_offer__
 
     def get_candidate_offers(self, state: SAOState) -> list[Outcome]:
         target_utility = self.target_utility(state)
@@ -147,7 +151,7 @@ class AgentNyan(BaseAgent):
     def get_offer(self, state: SAOState) -> Outcome:
         candidates = self.get_candidate_offers(state)
         if len(candidates) == 0:
-            return self.my_ufun_typesafe.best()
+            return self.get_first_offer()
         return random.choice(candidates)
 
     def target_utility(self, state: SAOState) -> float:
@@ -183,10 +187,13 @@ class AgentNyan(BaseAgent):
             result = curve(1.0, *popt)
         except Exception:
             result = self.opponent_minimum_util  # fallback
-        opponent_worst_outcome = self.opponent_ufun_typesafe.worst()
+        if self.opponent_worst_outcome__ is None:
+            self.opponent_worst_outcome__ = self.opponent_ufun_typesafe.worst()
         if result < self.opponent_minimum_util:
             return self.clamp(
-                result, float(self.opponent_ufun_typesafe(opponent_worst_outcome)), 1.0
+                result,
+                float(self.opponent_ufun_typesafe(self.opponent_worst_outcome__)),
+                1.0,
             )
         else:
             return self.opponent_minimum_util
