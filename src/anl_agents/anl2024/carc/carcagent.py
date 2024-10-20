@@ -140,8 +140,8 @@ class CARCAgent(SAONegotiator):
                 lambda x, e, rv: aspiration_function(
                     x, self.opponent_utilities[0], rv, e, 1.0
                 ),
-                self.tmp_times,
-                self.tmp_opponent_utilities,
+                tmp_times,
+                tmp_opponent_utilities,
                 bounds=bounds,
             )
             if relative_time >= 0.4 and len(self.opponent_utilities) > 10:
