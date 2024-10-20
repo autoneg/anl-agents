@@ -30,6 +30,11 @@ class Ilan(SAONegotiator):
         )
         self.total_rounds = nsteps__
 
+    def on_preferences_changed(self, changes):
+        assert self.ufun is not None
+        self.best_offer__ = self.ufun.best()
+        return super().on_preferences_changed(changes)
+
     def __call__(self, state: SAOState) -> SAOResponse:
         self.update_reserved_value(state.current_offer, state.relative_time)
         if self.is_acceptable(state.current_offer, state.relative_time):
@@ -56,7 +61,7 @@ class Ilan(SAONegotiator):
                 ]
             )
         if not self._rational:
-            return self.ufun.best()
+            return self.best_offer__
         asp = (1.0 - np.power(relative_time, self.e)) + 1.0
         max_rational = len(self._rational) - 1
         idx = max(0, min(max_rational, int(asp * max_rational * self.aggressiveness)))

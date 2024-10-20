@@ -37,10 +37,15 @@ class CARCAgent(SAONegotiator):
         self._opponent_nash_util = 0.0
 
     def on_preferences_changed(self, changes: list[PreferencesChange]):
+        assert (
+            self.ufun is not None
+            and self.opponent_ufun is not None
+            and self.ufun.outcome_space is not None
+        )
         ufuns = (self.ufun, self.opponent_ufun)
         outcomes = list(self.ufun.outcome_space.enumerate_or_sample())
         frontier_utils, _ = pareto_frontier(ufuns, outcomes)
-        nash_point = nash_points(ufuns, frontier_utils)
+        nash_point = nash_points(ufuns, frontier_utils)  # type: ignore
         if nash_point:
             self._nash_util = nash_point[0][0][0]
             self._opponent_nash_util = nash_point[0][0][1]
@@ -65,6 +70,7 @@ class CARCAgent(SAONegotiator):
                 * 1.2
             ],
         )
+        self.best_offer__ = self.ufun.best()
 
     def __call__(self, state):
         # update the opponent reserved value in self.opponent_ufun
@@ -79,7 +85,7 @@ class CARCAgent(SAONegotiator):
 
     def generate_offer(self, relative_time) -> Outcome:
         if not self._rational:
-            return self.ufun.best()
+            return self.best_offer__
 
         asp = aspiration_function(relative_time, 1.0, 0.0, 1.0, 1.0)
         asp1 = aspiration_function(relative_time, 1.0, 0.0, 2.0, 0.8)
@@ -91,6 +97,7 @@ class CARCAgent(SAONegotiator):
         )
         outcome = self._rational[indx][-1]
         if relative_time > 0.3:
+            assert self.opponent_ufun is not None
             if self.opponent_ufun(outcome) < self.opponent_ufun.reserved_value:
                 self.generate_offer(relative_time)
         return outcome
@@ -106,6 +113,7 @@ class CARCAgent(SAONegotiator):
         indx = max(0, min(max_rational, int(asp * max_rational)))
         outcome = self._rational[indx][-1]
 
+        assert self.ufun is not None
         if self.ufun(offer) >= self.ufun(outcome):
             return True
         elif relative_time > 0.98 and self.ufun(offer) > self.ufun.reserved_value:

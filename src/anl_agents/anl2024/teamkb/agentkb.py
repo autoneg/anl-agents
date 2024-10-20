@@ -71,6 +71,7 @@ class AgentKB(SAONegotiator):
             self.rational_outcomes[_] for _ in self.frontier_indices
         ]
         self.my_frontier_utils = [_[0] for _ in self.frontier_utils]
+        self.best_offer__ = self.ufun.best()
 
         # Estimate the reservation value, as a first guess, the opponent has the same reserved_value as you
         # self.partner_reserved_value = self.ufun.reserved_value
@@ -177,7 +178,7 @@ class AgentKB(SAONegotiator):
             choose_bid = self.get_target_bid(com_val, self.frontier_outcomes)
 
             if not choose_bid:
-                choose_bid = self.ufun.best()
+                choose_bid = self.best_offer__
 
             return choose_bid
 
@@ -192,7 +193,7 @@ class AgentKB(SAONegotiator):
                 else:
                     choose_bids = self.sort_bids_reverse(self.rational_outcomes)[:3]
                     if not choose_bids:
-                        return self.ufun.best()
+                        return self.best_offer__
 
                 return random.choice(choose_bids)
 
@@ -210,7 +211,7 @@ class AgentKB(SAONegotiator):
 
             # エラー対策
             if not sort_frontier_outcomes:
-                return self.ufun.best()
+                return self.best_offer__
 
             choose_bids = [_ for _ in sort_frontier_outcomes if self.ufun(_) > com_val]
 

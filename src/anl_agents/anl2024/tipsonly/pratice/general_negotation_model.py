@@ -1,15 +1,16 @@
 import math
 import random
-from collections.abc import Iterable
 
 from sklearn.cluster import DBSCAN, KMeans
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
-from negmas.sao import SAOResponse, SAONegotiator
-from negmas import Outcome, ResponseType, SAOState
+from negmas.sao import SAONegotiator
+from negmas import SAOState, SAOResponse, Outcome
 
 
-def initialize_DetReg(initial_value, reserved_value, time_high=1000, time_low=10) -> tuple:
+def initialize_DetReg(
+    initial_value, reserved_value, time_high=1000, time_low=10
+) -> tuple:
     """
     The first initialization of the DetReg rectangle, for a later learning process of the opponent behaviour.
     Args:
@@ -30,28 +31,43 @@ def initialize_DetReg(initial_value, reserved_value, time_high=1000, time_low=10
 class GeneralNegotiationModel(SAONegotiator):
     def __init__(self, *args, **kwargs) -> None:
         """
-                Initializes the general negotiation model.
-                Make the following steps inside:
-                1. Initialize the time variable to 0.0, to keep track of the time limit.
-                2.  We initialize the DetReg tuple using an upper bound of the best utility and worst utility values as bounds.
-                """
+        Initializes the general negotiation model.
+        Make the following steps inside:
+        1. Initialize the time variable to 0.0, to keep track of the time limit.
+        2.  We initialize the DetReg tuple using an upper bound of the best utility and worst utility values as bounds.
+        """
         super(GeneralNegotiationModel, self).__init__(*args, **kwargs)
         self.opponent_times: list[float] = []
         self.opponent_utilities: list[float] = []
-        self.previous_offers: list[tuple[float, float]] = []
+        self.previous_offers: list[Outcome] = []
         self._past_opponent_rv = 0.0
         self._future_opponent_rv = 0
-        self.DetReg_tuple = initialize_DetReg(initial_value=self.opponent_ufun.worst(),
-                                              reserved_value=self.opponent_ufun.best()
-                                              )
         self.regression_calculations_dp: dict[str, float] = {}
         self.total_cells_as_clusters = None
         self.kmeans_clustering = None
         self.min_max_scaler = None
         self.probability_distribution_hypotheses: dict[
-            str, float] = {}  # The probability distribution hypotheses for the learning process
+            str, float
+        ] = {}  # The probability distribution hypotheses for the learning process
+        self.opp_worst__, self.opp_best__ = None, None
+        self.DetReg_tuple = None
+        if self.opponent_ufun is not None:
+            self.opp_worst__ = self.opponent_ufun.worst()
+            self.opp_best__ = self.opponent_ufun.best()
+            self.DetReg_tuple = initialize_DetReg(
+                initial_value=self.opp_worst__, reserved_value=self.opp_best__
+            )
 
-    def __call__(self, state: SAOState):
+    def on_preferences_changed(self, changes):
+        if self.opponent_ufun is not None:
+            self.opp_worst__ = self.opponent_ufun.worst()
+            self.opp_best__ = self.opponent_ufun.best()
+            self.DetReg_tuple = initialize_DetReg(
+                initial_value=self.opp_worst__, reserved_value=self.opp_best__
+            )
+        return super().on_preferences_changed(changes)
+
+    def __call__(self, state: SAOState) -> SAOResponse:
         offer = state.current_offer
         if offer is not None:
             current_offer = self.save_offer(offer, state.relative_time)
@@ -63,34 +79,46 @@ class GeneralNegotiationModel(SAONegotiator):
                 if rand_offer[1] < state.relative_time:
                     # Calculating the regression line (li) for the random offer.
                     # We use dynamic programming to save time and unnecessary calculations
-                    rand_offer_key = self.generate_key_for_dp(offer=rand_offer, parent_offer=current_offer)
-                    if not rand_offer_key in self.regression_calculations_dp.keys():
-                        reg_line_li = self.calc_regression_curve(rand_offer=rand_offer, current_offer=current_offer)
+                    rand_offer_key = self.generate_key_for_dp(
+                        offer=rand_offer, parent_offer=current_offer
+                    )
+                    if rand_offer_key not in self.regression_calculations_dp.keys():
+                        reg_line_li = self.calc_regression_curve(
+                            rand_offer=rand_offer, current_offer=current_offer
+                        )
                         self.regression_calculations_dp[rand_offer_key] = reg_line_li
                     else:
                         reg_line_li = self.regression_calculations_dp[rand_offer_key]
 
                     # Extract the fitted offers that match the regression line constraint.
-                    fitted_offers = self.get_fitted_offers(regression_line=reg_line_li, random_offers=rand_offers)
+                    fitted_offers = self.get_fitted_offers(
+                        regression_line=reg_line_li, random_offers=rand_offers
+                    )
                     if len(fitted_offers) > 0:
                         """
                         Calculating the non-linear correlation between opponent's historical offers and the fitted offers.
                          If the value of coefficient is close to 1 - this offer is good offer and we can save it as a good one.
                          If the value of coefficient is close to -1 - this offer is a bad offer and we can prevent it.
                          """
-                        coefficient = self.calc_nonlinear_correlation_coefficient(fitted_offers=fitted_offers,
-                                                                                  t=state.relative_time)
+                        coefficient = self.calc_nonlinear_correlation_coefficient(
+                            fitted_offers=fitted_offers, t=state.relative_time
+                        )
                     self.update_hypothesis(current_offer=state.current_offer)
 
     def save_offer(self, current_offer, relative_time):
+        assert self.opponent_ufun is not None
         self.opponent_times.append(relative_time)
-        self.opponent_utilities.append(self.opponent_ufun(current_offer))
+        self.opponent_utilities.append(float(self.opponent_ufun(current_offer)))
         offer = (current_offer, relative_time, self.opponent_ufun.reserved_value)
         self.previous_offers.append(offer)
         self._past_opponent_rv = self.opponent_ufun.reserved_value
         return offer
 
-    def generate_random_offers(self, time_grid_size=10, value_grid_size=5, ) -> list:
+    def generate_random_offers(
+        self,
+        time_grid_size=10,
+        value_grid_size=5,
+    ) -> list:
         """
         Generates random reservation points within each cell of the DetReg.
         At round tb, the buyer selects a random reservation point Xi (Ti(Xi),Pi(Xi)) in each cell Ci of the detecting region.
@@ -126,7 +154,8 @@ class GeneralNegotiationModel(SAONegotiator):
                     rand_time = random.uniform(min_time, max_time)
                     rand_price = random.uniform(min_price, max_price)
                     rv = self.opponent_ufun(
-                        (rand_time, rand_price))  # The reserved value from the opponent's utility function.
+                        (rand_time, rand_price)
+                    )  # The reserved value from the opponent's utility function.
                     rand_point = (rand_time, rand_price, rv)
                     random_offers.append(rand_point)
 
@@ -146,19 +175,26 @@ class GeneralNegotiationModel(SAONegotiator):
 
         rand_samples = set()
         for i in range(10):
-            rand_samples.add(self.opponent_ufun.outcome_space.sample(n_outcomes=100, with_replacement=True))
+            rand_samples.add(
+                self.opponent_ufun.outcome_space.sample(
+                    n_outcomes=100, with_replacement=True
+                )
+            )
         rand_samples = [
-            outcome for outcome in rand_samples
-            if self.in_DetReg_boundaries(outcome)
+            outcome for outcome in rand_samples if self.in_DetReg_boundaries(outcome)
         ]
         X = np.array(rand_samples)
 
         self.min_max_scaler.fit(X)
         X_scaled = self.min_max_scaler.transform(X)
-        self.total_cells_as_clusters.fit(X_scaled)  # Make clusters according to the outcome space sample
+        self.total_cells_as_clusters.fit(
+            X_scaled
+        )  # Make clusters according to the outcome space sample
         # Initialize the KMEANS eith the number of clusters from the DBSCAN
-        n_clusters = len(set(self.total_cells_as_clusters.labels_))  # Taking the number of clusters to the kmeans model
-        self.kmeans_clustering = KMeans(n_clusters=n_clusters, init='k-means++')
+        n_clusters = len(
+            set(self.total_cells_as_clusters.labels_)
+        )  # Taking the number of clusters to the kmeans model
+        self.kmeans_clustering = KMeans(n_clusters=n_clusters, init="k-means++")
         self.kmeans_clustering.fit(X_scaled)
 
     def predict_cluster(self, new_data_point):
@@ -182,7 +218,9 @@ class GeneralNegotiationModel(SAONegotiator):
 
         # Loop through core samples and find the closest one
         for i, core_sample in enumerate(core_samples):
-            distance = np.linalg.norm(new_data_point - core_sample)  # Calculate distance
+            distance = np.linalg.norm(
+                new_data_point - core_sample
+            )  # Calculate distance
             if distance < min_distance:
                 min_distance = distance
                 predicted_cluster = cluster_labels[i]
@@ -192,16 +230,18 @@ class GeneralNegotiationModel(SAONegotiator):
     def in_DetReg_boundaries(self, outcome):
         """
         Checks if a given outcome falls within the boundaries of the DetReg.
-  
+
         Args:
             outcome: A single outcome value from the opponent's outcome space.
-  
+
         Returns:
             bool: True if the outcome is within DetReg boundaries, False otherwise.
         """
         time_start, time_end, offer_start, offer_end = self.DetReg_tuple
-        return (time_start <= outcome[0] <= time_end and
-                offer_start <= outcome[1] <= offer_end)
+        return (
+            time_start <= outcome[0] <= time_end
+            and offer_start <= outcome[1] <= offer_end
+        )
 
     def set_initial_probabilities(self):
         # We use uniform distribution for now
@@ -212,10 +252,12 @@ class GeneralNegotiationModel(SAONegotiator):
             self.probability_distribution_hypotheses[k] = 1 / n_all
 
     def probability_of_Hi(self, i):
-        k = f'H_{i}'
+        k = f"H_{i}"
         return self.probability_distribution_hypotheses[k]
 
-    def get_probability_distribution_hypotheses(self, single_outcome, single_hypotheses):
+    def get_probability_distribution_hypotheses(
+        self, single_outcome, single_hypotheses
+    ):
         single_outcome = self.min_max_scaler(single_outcome)
         single_outcome = np.array(single_outcome)
         p = self.kmeans_clustering.predict([single_outcome])
@@ -239,19 +281,21 @@ class GeneralNegotiationModel(SAONegotiator):
         denominator = 0.0
         for k, v in self.probability_distribution_hypotheses.items():
             # Calculate P(Hi)
-            label = int(k.split('_')[-1])
+            label = int(k.split("_")[-1])
             p_h_i = self.probability_of_Hi(label)
 
-            conditional_probability = self.get_probability_distribution_hypotheses(single_outcome=current_offer,
-                                                                                   single_hypotheses=label)
+            conditional_probability = self.get_probability_distribution_hypotheses(
+                single_outcome=current_offer, single_hypotheses=label
+            )
             denominator += p_h_i * conditional_probability
 
         n_all = [k for k in self.probability_distribution_hypotheses.keys()]
         for key_i in range(n_all):
-            i = int(key_i.split('_')[-1])
-            numerator = self.probability_of_Hi(i) * self.get_probability_distribution_hypotheses(
-                single_outcome=current_offer,
-                single_hypotheses=i
+            i = int(key_i.split("_")[-1])
+            numerator = self.probability_of_Hi(
+                i
+            ) * self.get_probability_distribution_hypotheses(
+                single_outcome=current_offer, single_hypotheses=i
             )
             self.probability_distribution_hypotheses[key_i] = numerator / denominator
 
@@ -277,8 +321,9 @@ class GeneralNegotiationModel(SAONegotiator):
 
         t = current_offer[0]  # The current offer's relative time
         pi = current_offer[1]  # The current offer's itself
-        b = self.get_beta(p0=p0, tix=tix, t=t,
-                          pi=pi, pix=pix)  # The concession parameter
+        b = self.get_beta(
+            p0=p0, tix=tix, t=t, pi=pi, pix=pix
+        )  # The concession parameter
         return p0 + (rv - p0) * pow((t / tix), b)
 
     def get_beta(self, p0, tix, t, pix, pi) -> float:
@@ -317,9 +362,13 @@ class GeneralNegotiationModel(SAONegotiator):
         for previous_original_offer in self.previous_offers:
             for offer in random_offers:
                 # We want to calculate the regression curve foreach offer
-                offer_key = self.generate_key_for_dp(offer, parent_offer=previous_original_offer)
+                offer_key = self.generate_key_for_dp(
+                    offer, parent_offer=previous_original_offer
+                )
                 if offer_key not in self.regression_calculations_dp.keys():
-                    li = self.calc_regression_curve(rand_offer=offer, current_offer=previous_original_offer)
+                    li = self.calc_regression_curve(
+                        rand_offer=offer, current_offer=previous_original_offer
+                    )
                     self.regression_calculations_dp[offer_key] = li
                 else:
                     li = self.regression_calculations_dp[offer_key]
@@ -370,16 +419,23 @@ class GeneralNegotiationModel(SAONegotiator):
         average_historical_offers = 0.0
         for offer in self.previous_offers:
             average_historical_offers += offer[1]
-        average_historical_offers = average_historical_offers // len(self.previous_offers)
+        average_historical_offers = average_historical_offers // len(
+            self.previous_offers
+        )
 
         # Calculating the Numerator -> ∑(tb>i>0) = (pi − p')(pˆi − (pˆ)')
         numerator = 0.0
         for i in range(t):
             pi = self.previous_offers[i][1]  # The value of the offer in time i(pi)
-            rv_i = self.previous_offers[i][2]  # Reservation value for historical offer i
-            pi_fitted = fitted_offers[i][1]  # The value of the fitted offer in tine i (p^i)
-            numerator += (pi - average_historical_offers - (rv_i - average_historical_offers)) * \
-                         (pi_fitted - average_fitted_offers)
+            rv_i = self.previous_offers[i][
+                2
+            ]  # Reservation value for historical offer i
+            pi_fitted = fitted_offers[i][
+                1
+            ]  # The value of the fitted offer in tine i (p^i)
+            numerator += (
+                pi - average_historical_offers - (rv_i - average_historical_offers)
+            ) * (pi_fitted - average_fitted_offers)
 
         # Calculating the Denominator -> ∑ (tb>i>0) = (pi − p')^2 *  ∑ (n>i>0) = (pˆi − (pˆ)')^2
         n = len(fitted_offers)
@@ -391,7 +447,9 @@ class GeneralNegotiationModel(SAONegotiator):
             a = pow(a, 2)
             b = 0.0
             for j in range(n):
-                pi_fitted = fitted_offers[i][1]  # The value of the fitted offer in tine i (p^i)
+                pi_fitted = fitted_offers[i][
+                    1
+                ]  # The value of the fitted offer in tine i (p^i)
                 b += pi_fitted - average_historical_offers
                 b = pow(b, 2)
             denominator += a * b
@@ -401,4 +459,4 @@ class GeneralNegotiationModel(SAONegotiator):
 
     @staticmethod
     def transform_probability_key(k):
-        return int(k.split('H')[-1])
+        return int(k.split("H")[-1])

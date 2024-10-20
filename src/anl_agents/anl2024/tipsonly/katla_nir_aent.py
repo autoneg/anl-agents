@@ -33,7 +33,9 @@ class DetectingRegion:
         # Initialize detecting cells and generate random reservation points
         self.update_detecting_region()
 
-    def update_detecting_region(self, state: SAOState = None, max_price=100):
+    def update_detecting_region(
+        self, state: SAOState | None = None, max_price: float = 100
+    ):
         # Update the detecting region with the current negotiation time
         if state is not None:
             self.current_time = state.step
@@ -210,7 +212,8 @@ class KatlaNirAgent(SAONegotiator):
 
     def on_negotiation_start(self, state: GBState) -> None:
         # initialize the parameters
-        self.IP = 101 - self.ufun(self.ufun.best()) * 100
+        assert self.ufun is not None
+        self.IP = 101 - float(self.ufun(self.ufun.best())) * 100
         self.RP = 100 - self.reserved_value * 100
 
         nsteps__ = (
@@ -246,13 +249,13 @@ class KatlaNirAgent(SAONegotiator):
         if self.ufun is None:
             return SAOResponse(ResponseType.END_NEGOTIATION, None)
 
+        assert self.opponent_ufun is not None
+        oppu_ = float(self.opponent_ufun(offer))
         if offer is not None:
-            self.HISTORY.append(self.opponent_ufun(offer) * 100)
+            self.HISTORY.append(oppu_ * 100)
 
         if len(self.HISTORY) > 4:
-            self.detecting_region.update_detecting_region(
-                state, self.opponent_ufun(offer) * 100
-            )
+            self.detecting_region.update_detecting_region(state, oppu_ * 100)
             self.detecting_region.generate_regression_curve(self.HISTORY)
             self.detecting_region.clalculate_fitted_offers()
             self.detecting_region.get_non_linear_correlation(self.HISTORY)
@@ -299,12 +302,15 @@ class KatlaNirAgent(SAONegotiator):
         min_distance = float("inf")
 
         for outcome in self.rational_outcomes:
-            distance = abs(target_utility - self.ufun(outcome))
+            distance = abs(target_utility - float(self.ufun(outcome)))
             if distance < min_distance:
                 min_distance = distance
                 closest_outcome = outcome
 
-        self.my_current_offer = (state.step, 100 - self.ufun(closest_outcome) * 100)
+        self.my_current_offer = (
+            state.step,
+            100 - float(self.ufun(closest_outcome)) * 100,
+        )
         self.MY_HISTORY.append(self.my_current_offer)
 
         return closest_outcome
@@ -321,7 +327,10 @@ class KatlaNirAgent(SAONegotiator):
         p0 = self.my_current_offer[1]
         t0 = self.my_current_offer[0]
 
-        nego_region = [(100 - 100 * self.ufun(_)) for _ in self.rational_outcomes]
+        assert self.ufun is not None
+        nego_region = [
+            (100 - 100 * float(self.ufun(_))) for _ in self.rational_outcomes
+        ]
         for idx, point in enumerate(self.detecting_region.random_reservation_points):
             pix = 100 - point[1]
             tix = point[0] - 1
