@@ -128,7 +128,10 @@ class AgentKB(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         if self.step == nsteps__:
             if offer in self.rational_outcomes:
@@ -170,7 +173,10 @@ class AgentKB(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         if self.step == nsteps__:
             com_val = self.make_threshold_depend_on_reservation(m=self.m2, n=self.n2)

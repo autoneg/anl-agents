@@ -107,7 +107,10 @@ class AwesomeNegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         end_game = state.relative_time >= 0.97 or state.step + 1 == nsteps__
 
@@ -237,7 +240,10 @@ class IngoNegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         self.total_steps = nsteps__
 
@@ -312,7 +318,10 @@ class IngoNegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         end_game = state.relative_time >= 0.97 or state.step + 1 == nsteps__
 
@@ -346,7 +355,10 @@ class IngoNegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         percentage_complete = state.step / nsteps__
         if percentage_complete < 0.79:
@@ -383,7 +395,10 @@ class IngoNegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         chaos_threshold = 0.3 + (state.step / nsteps__)
         # Get all possible offers
@@ -578,7 +593,10 @@ class IngoNegotiator(SAONegotiator):
             nsteps__ = (
                 self.nmi.n_steps
                 if self.nmi.n_steps
-                else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+                else int(
+                    (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                    + 0.5
+                )
             )
             self.discount_ratio = (self.current_step / nsteps__) ** self.lambda_opp
 

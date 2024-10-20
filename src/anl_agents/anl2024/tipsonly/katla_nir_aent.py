@@ -219,7 +219,10 @@ class KatlaNirAgent(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         self.T = nsteps__
         self.beta = 1.6

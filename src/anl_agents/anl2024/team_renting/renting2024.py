@@ -181,7 +181,10 @@ class AgentRenting2024(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         if self.use_neural_network and state.step > math.floor(nsteps__ * 0.95):
             self.update_partner_reserved_value(state)
@@ -274,7 +277,10 @@ class AgentRenting2024(SAONegotiator):
             nsteps__ = (
                 self.nmi.n_steps
                 if self.nmi.n_steps
-                else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+                else int(
+                    (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                    + 0.5
+                )
             )
             assert self.opponent_ufun and self.ufun
             if nsteps__ - 1 == state.step:
@@ -354,7 +360,10 @@ class AgentRenting2024(SAONegotiator):
             nsteps__ = (
                 self.nmi.n_steps
                 if self.nmi.n_steps
-                else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+                else int(
+                    (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                    + 0.5
+                )
             )
             total_t = (
                 nsteps__ - 1
@@ -425,7 +434,10 @@ class AgentRenting2024(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
 
         total_t = (
@@ -620,7 +632,10 @@ class AgentRenting2024(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         n_relevant_steps = max(100, math.floor(nsteps__ * 0.1))
 
@@ -771,7 +786,10 @@ class AgentRenting2024(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         for k in range(1, nsteps__ + 1):
             d_prime = 0.0
@@ -805,7 +823,10 @@ class AgentRenting2024(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         for r in range(1, nsteps__ + 1):
             org_policy = policy
@@ -828,7 +849,10 @@ class AgentRenting2024(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         for r in range(nsteps__):
             s = random.randint(0, nsteps__)
@@ -902,7 +926,10 @@ class AgentRenting2024(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         second_part = (self.S[nsteps__] - self.S[i]) * (
             self.opponent_ufun(policy[i])

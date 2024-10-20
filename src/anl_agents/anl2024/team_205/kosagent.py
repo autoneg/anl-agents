@@ -121,7 +121,10 @@ class KosAgent(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         if nsteps__ - self.step == 1:
             if self.ufun(offer) > self.ufun.reserved_value:
@@ -175,7 +178,10 @@ class KosAgent(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         # assert self.nmi.n_steps is not None
         self.current_time = self.step / nsteps__

@@ -66,7 +66,10 @@ class INegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         if nsteps__ is not None:
             max_number_hyp = np.min([int(nsteps__ / 5), 100])
@@ -146,7 +149,10 @@ class INegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         end_game = self.current_phase(state) == 2 or state.step + 1 == nsteps__
         # In case we get significantly more utility than our reservation value in the end game, we accept
@@ -184,7 +190,10 @@ class INegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         percentage_complete = state.step / nsteps__
         steps_left = nsteps__ - state.step
@@ -477,7 +486,11 @@ class INegotiator(SAONegotiator):
                 nsteps__ = (
                     self.nmi.n_steps
                     if self.nmi.n_steps
-                    else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+                    else int(
+                        (self.nmi.state.time + 1e-6)
+                        / (self.nmi.state.relative_time + 1e-6)
+                        + 0.5
+                    )
                 )
                 if nsteps__ is None:
                     num_of_turns_left = min(
