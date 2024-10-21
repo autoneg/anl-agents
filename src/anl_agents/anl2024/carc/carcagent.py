@@ -96,10 +96,10 @@ class CARCAgent(SAONegotiator):
             np.random.randint(min_indx, max_indx) if max_indx > min_indx else max_indx
         )
         outcome = self._rational[indx][-1]
-        if relative_time > 0.3:
-            assert self.opponent_ufun is not None
-            if self.opponent_ufun(outcome) < self.opponent_ufun.reserved_value:
-                self.generate_offer(relative_time)
+        # if relative_time > 0.3:
+        #     assert self.opponent_ufun is not None
+        #     if self.opponent_ufun(outcome) < self.opponent_ufun.reserved_value:
+        #         self.generate_offer(relative_time)
         return outcome
 
     def is_acceptable(self, offer, relative_time) -> bool:
