@@ -1,4 +1,4 @@
-import matplotlib.pyplot as plt
+from copy import deepcopy
 from scipy.optimize import curve_fit
 import numpy as np
 from anl.anl2024 import anl2024_tournament
@@ -36,6 +36,7 @@ class MyNegotiator(SAONegotiator):
 
     def on_preferences_changed(self, changes):
         assert self.ufun is not None
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
         self.best_offer__ = self.ufun.best()
 
     def __call__(self, state: SAOState):
@@ -114,6 +115,8 @@ class MyNegotiator(SAONegotiator):
 
 
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
     # Evaluate the negotiators
     res = anl2024_tournament(
         n_scenarios=1,

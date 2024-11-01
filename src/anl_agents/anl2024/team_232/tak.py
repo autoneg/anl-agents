@@ -8,6 +8,7 @@ the authors and the ANAC 2024 ANL competition.
 """
 
 import math
+from copy import deepcopy
 import random
 
 from negmas.outcomes import Outcome
@@ -68,6 +69,7 @@ class TAKAgent(SAONegotiator):
     def on_preferences_changed(self, changes):
         if self.ufun is None:
             return
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
 
         self.rational_outcomes = [
             _
@@ -77,6 +79,7 @@ class TAKAgent(SAONegotiator):
 
         self.partner_reserved_value = self.ufun.reserved_value
 
+        assert self.opponent_ufun is not None
         self.opponent_ufun.reserved_value = self.ufun.reserved_value
 
         nsteps__ = (

@@ -1,3 +1,4 @@
+from copy import deepcopy
 from scipy.optimize import curve_fit
 from negmas.sao import SAONegotiator, SAOResponse
 from negmas import ResponseType, Outcome
@@ -25,6 +26,8 @@ class HardChaosNegotiator(SAONegotiator):
 
     def on_preferences_changed(self, changes):
         assert self.ufun is not None
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
+        self._preferences = deepcopy(self._preferences)
         self.best_offer__ = self.ufun.best()
 
     def update_opponent_model(self, offer, relative_time):

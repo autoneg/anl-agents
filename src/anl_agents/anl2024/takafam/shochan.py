@@ -1,7 +1,9 @@
 import numpy as np
+from copy import deepcopy
 from negmas import nash_points, pareto_frontier
 from negmas import Outcome, ResponseType, SAONegotiator, SAOResponse, SAOState
 from scipy.optimize import curve_fit
+
 
 __all__ = ["Shochan"]
 
@@ -78,8 +80,6 @@ class Shochan(SAONegotiator):
         self._nash_factor = nash_factor
         self._best: Outcome = None  # type: ignore
         self.nidx = 0
-        assert self.opponent_ufun is not None
-        self.opponent_ufun.reserved_value = 0.0
         self.lasttime = 1.0
         self.diffmean = 0.01
         self.pat = 0.95
@@ -92,7 +92,10 @@ class Shochan(SAONegotiator):
 
     def on_preferences_changed(self, changes):
         assert self.ufun is not None
+        assert self.opponent_ufun is not None
         self.best_offer__ = self.ufun.best()
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
+        self.opponent_ufun.reserved_value = 0.0
         return super().on_preferences_changed(changes)
 
     def __call__(self, state: SAOState) -> SAOResponse:

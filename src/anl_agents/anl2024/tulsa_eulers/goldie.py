@@ -7,6 +7,7 @@ This code is free to use or update given that proper attribution is given to
 the authors and the ANAC 2024 ANL competition.
 """
 
+from copy import deepcopy
 import random
 
 from negmas.outcomes import Outcome
@@ -49,6 +50,9 @@ class Goldie(SAONegotiator):
         self.opponent_utilities = []
         self.past_opponent_rv = 0.0
         self.rational = []
+
+    def on_preferences_changed(self, changes):
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
 
     def __call__(self, state: SAOState) -> SAOResponse:
         # The main implementation of the MiCRO strategy

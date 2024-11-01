@@ -1,3 +1,4 @@
+from copy import deepcopy
 import numpy as np
 from negmas.sao import SAOResponse, SAONegotiator
 from negmas import Outcome, ResponseType, SAOState
@@ -35,6 +36,7 @@ class Ilan(SAONegotiator):
 
     def on_preferences_changed(self, changes):
         assert self.ufun is not None
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
         self.best_offer__ = self.ufun.best()
         return super().on_preferences_changed(changes)
 

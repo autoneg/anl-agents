@@ -1,3 +1,4 @@
+from copy import deepcopy
 from negmas.common import PreferencesChange
 import numpy as np
 from negmas.sao import SAONegotiator, SAOResponse
@@ -42,9 +43,10 @@ class CARCAgent(SAONegotiator):
             and self.opponent_ufun is not None
             and self.ufun.outcome_space is not None
         )
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
         ufuns = (self.ufun, self.opponent_ufun)
         outcomes = list(self.ufun.outcome_space.enumerate_or_sample())
-        frontier_utils, _ = pareto_frontier(ufuns, outcomes)
+        frontier_utils, _ = pareto_frontier(ufuns, outcomes)  # type: ignore
         nash_point = nash_points(ufuns, frontier_utils)  # type: ignore
         if nash_point:
             self._nash_util = nash_point[0][0][0]
