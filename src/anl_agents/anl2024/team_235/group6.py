@@ -1,12 +1,14 @@
 import random
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+
+from anl.anl2024.negotiators.base import ANLNegotiator
+from negmas.sao import ResponseType, SAOResponse, SAOState
 from scipy.optimize import curve_fit
 import numpy as np
 
 __all__ = ["Group6"]
 
 
-class Group6(SAONegotiator):
+class Group6(ANLNegotiator):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.offer_history = []

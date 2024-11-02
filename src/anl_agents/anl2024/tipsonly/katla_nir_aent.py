@@ -1,8 +1,10 @@
 import random
 from typing import List
+
+from anl.anl2024.negotiators.base import ANLNegotiator
 from negmas.gb.common import GBState
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 import math
 import numpy as np
 
@@ -192,7 +194,7 @@ class DetectingRegion:
         return best_point
 
 
-class KatlaNirAgent(SAONegotiator):
+class KatlaNirAgent(ANLNegotiator):
     IP = 0  # Initial price will be set during negotiation start
     RP = 0  # Reserve price
     T = 0  # Deadline

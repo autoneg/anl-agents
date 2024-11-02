@@ -7,8 +7,9 @@ This code is free to use or update given that proper attribution is given to
 the authors and the ANAC 2024 ANL competition.
 """
 
+from anl.anl2024.negotiators.base import ANLNegotiator
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 from negmas.preferences import pareto_frontier, nash_points
 
 from .acceptance_logic import should_accept_offer
@@ -18,7 +19,7 @@ from .bidding_strategy import BiddingStrategy
 __all__ = ["BargainBot"]
 
 
-class BargainBot(SAONegotiator):
+class BargainBot(ANLNegotiator):
     def on_preferences_changed(self, changes):
         """
         Called when preferences change. In ANL 2024, this is equivalent with initializing the agent.

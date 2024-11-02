@@ -1,7 +1,8 @@
+from anl.anl2024.negotiators.base import ANLNegotiator
 import numpy as np
 from copy import deepcopy
 from negmas import nash_points, pareto_frontier
-from negmas import Outcome, ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas import Outcome, ResponseType, SAOResponse, SAOState
 from scipy.optimize import curve_fit
 
 
@@ -12,7 +13,7 @@ def aspiration_function(t, mx, rv, e):
     return (mx - rv) * (1.0 - np.power(t, e)) + rv
 
 
-class Shochan(SAONegotiator):
+class Shochan(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -474,7 +475,7 @@ class Shochan(SAONegotiator):
         return float(self.ufun(offer)) >= myasp
 
 
-class Shochan_base75(SAONegotiator):
+class Shochan_base75(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -814,7 +815,7 @@ class Shochan_base75(SAONegotiator):
             )
 
 
-class Shochan_base50(SAONegotiator):
+class Shochan_base50(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -1158,7 +1159,7 @@ class Shochan_base50(SAONegotiator):
             )
 
 
-class Shochan_base100(SAONegotiator):
+class Shochan_base100(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -1502,7 +1503,7 @@ class Shochan_base100(SAONegotiator):
             )
 
 
-class Shochan_base125(SAONegotiator):
+class Shochan_base125(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -1846,7 +1847,7 @@ class Shochan_base125(SAONegotiator):
             )
 
 
-class Shochan_base150(SAONegotiator):
+class Shochan_base150(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -2190,7 +2191,7 @@ class Shochan_base150(SAONegotiator):
             )
 
 
-class Shochan_base175(SAONegotiator):
+class Shochan_base175(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -2534,7 +2535,7 @@ class Shochan_base175(SAONegotiator):
             )
 
 
-class Shochan_base200(SAONegotiator):
+class Shochan_base200(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:

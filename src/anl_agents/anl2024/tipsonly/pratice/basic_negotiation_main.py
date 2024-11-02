@@ -1,9 +1,10 @@
 from copy import deepcopy
+from anl.anl2024.negotiators.base import ANLNegotiator
 from scipy.optimize import curve_fit
 import numpy as np
 from anl.anl2024 import anl2024_tournament
 from anl.anl2024.negotiators import Boulware, Conceder, RVFitter
-from negmas.sao import SAOResponse, SAONegotiator
+from negmas.sao import SAOResponse
 from negmas import Outcome, ResponseType, SAOState
 
 # Imports for running a single negotiation
@@ -16,7 +17,7 @@ def aspiration_function(t, mx, rv, e):
     return (mx - rv) * (1.0 - np.power(t, e)) + rv
 
 
-class MyNegotiator(SAONegotiator):
+class MyNegotiator(ANLNegotiator):
     def __init__(self, *args, e: float = 5.0, **kwargs) -> None:
         super().__init__(*args, **kwargs)
         self.e = e

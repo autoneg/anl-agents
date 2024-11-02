@@ -1,6 +1,7 @@
 from copy import deepcopy
+from anl.anl2024.negotiators.base import ANLNegotiator
 import numpy as np
-from negmas.sao import SAOResponse, SAONegotiator
+from negmas.sao import SAOResponse
 from negmas import Outcome, ResponseType, SAOState
 from scipy.optimize import curve_fit
 from typing import List
@@ -8,7 +9,7 @@ from typing import List
 __all__ = ["Ilan"]
 
 
-class Ilan(SAONegotiator):
+class Ilan(ANLNegotiator):
     def __init__(
         self, *args, e: float = 5.0, aggressiveness: float = 0.8, **kwargs
     ) -> None:

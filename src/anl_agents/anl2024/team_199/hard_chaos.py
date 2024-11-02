@@ -1,6 +1,7 @@
 from copy import deepcopy
+from anl.anl2024.negotiators.base import ANLNegotiator
 from scipy.optimize import curve_fit
-from negmas.sao import SAONegotiator, SAOResponse
+from negmas.sao import SAOResponse
 from negmas import ResponseType, Outcome
 import numpy as np
 
@@ -12,7 +13,7 @@ def aspiration_function(t, mx, rv, e):
     return (mx - rv) * (1.0 - np.power(t, e)) + rv
 
 
-class HardChaosNegotiator(SAONegotiator):
+class HardChaosNegotiator(ANLNegotiator):
     def __init__(
         self, *args, e=8.0, **kwargs
     ):  # Increase the exponent to make the negotiation tougher
@@ -27,7 +28,6 @@ class HardChaosNegotiator(SAONegotiator):
     def on_preferences_changed(self, changes):
         assert self.ufun is not None
         self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
-        self._preferences = deepcopy(self._preferences)
         self.best_offer__ = self.ufun.best()
 
     def update_opponent_model(self, offer, relative_time):

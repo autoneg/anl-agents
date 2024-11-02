@@ -1,11 +1,12 @@
+from anl.anl2024.negotiators.base import ANLNegotiator
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 import numpy as np
 
 __all__ = ["Nayesian"]
 
 
-class Nayesian(SAONegotiator):
+class Nayesian(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """

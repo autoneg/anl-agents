@@ -11,9 +11,10 @@ the authors and the ANAC 2024 ANL competition.
 import math
 import time
 import random
+from anl.anl2024.negotiators.base import ANLNegotiator
 import numpy as np
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 from scipy.optimize import curve_fit
 from collections import deque
 from negmas.preferences import nash_points, pareto_frontier
@@ -26,7 +27,7 @@ warnings.filterwarnings("ignore")
 __all__ = ["AgentRenting2024"]
 
 
-class AgentRenting2024(SAONegotiator):
+class AgentRenting2024(ANLNegotiator):
     def __init__(self, **kwargs):
         """
         Initializes variables/lists.

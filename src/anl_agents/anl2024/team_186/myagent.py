@@ -9,12 +9,14 @@ the authors and the ANAC 2024 ANL competition.
 
 import random
 
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from anl.anl2024.negotiators.base import ANLNegotiator
+
+from negmas.sao import ResponseType, SAOResponse, SAOState
 
 __all__ = ["MyNegotiator"]
 
 
-class MyNegotiator(SAONegotiator):
+class MyNegotiator(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """

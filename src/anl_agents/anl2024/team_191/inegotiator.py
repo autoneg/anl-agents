@@ -9,18 +9,19 @@ the authors and the ANAC 2024 ANL competition.
 
 import random
 import math
+from anl.anl2024.negotiators.base import ANLNegotiator
 import numpy as np
 import scipy
 import copy
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 from negmas.preferences import pareto_frontier, nash_points
 
 
 __all__ = ["INegotiator"]
 
 
-class INegotiator(SAONegotiator):
+class INegotiator(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """

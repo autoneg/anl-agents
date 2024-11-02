@@ -1,10 +1,10 @@
 import math
 import random
 
+from anl.anl2024.negotiators.base import ANLNegotiator
 from sklearn.cluster import DBSCAN, KMeans
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
-from negmas.sao import SAONegotiator
 from negmas import SAOState, SAOResponse, Outcome
 
 
@@ -28,7 +28,7 @@ def initialize_DetReg(
     return (time_low, time_high, initial_value, reserved_value)
 
 
-class GeneralNegotiationModel(SAONegotiator):
+class GeneralNegotiationModel(ANLNegotiator):
     def __init__(self, *args, **kwargs) -> None:
         """
         Initializes the general negotiation model.

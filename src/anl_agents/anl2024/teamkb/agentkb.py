@@ -8,16 +8,17 @@ the authors and the ANAC 2024 ANL competition.
 """
 
 import random
+from anl.anl2024.negotiators.base import ANLNegotiator
 import numpy as np
 
 from negmas import pareto_frontier
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 
 __all__ = ["AgentKB"]
 
 
-class AgentKB(SAONegotiator):
+class AgentKB(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """

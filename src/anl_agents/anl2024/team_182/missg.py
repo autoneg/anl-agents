@@ -9,11 +9,13 @@ the authors and the ANAC 2024 ANL competition.
 
 import random
 
+from anl.anl2024.negotiators.base import ANLNegotiator
+
 from negmas.common import MechanismState
 
 # from helpers.runner import run_a_tournament
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -23,7 +25,7 @@ import warnings
 __all__ = ["MissG"]
 
 
-class MissG(SAONegotiator):
+class MissG(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """

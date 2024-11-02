@@ -1,7 +1,9 @@
 from copy import deepcopy
+
+from anl.anl2024.negotiators.base import ANLNegotiator
 from negmas.common import PreferencesChange
 import numpy as np
-from negmas.sao import SAONegotiator, SAOResponse
+from negmas.sao import SAOResponse
 from negmas import Outcome, ResponseType
 from negmas.preferences import pareto_frontier, nash_points
 from scipy.optimize import curve_fit
@@ -13,7 +15,7 @@ def aspiration_function(t, mx, rv, e, c):
     return (mx - rv) * (1.0 - c * np.power(t, e)) + rv
 
 
-class CARCAgent(SAONegotiator):
+class CARCAgent(ANLNegotiator):
     def __init__(
         self,
         *args,

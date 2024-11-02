@@ -10,9 +10,11 @@ the authors and the ANAC 2024 ANL competition.
 from copy import deepcopy
 import random
 
+from anl.anl2024.negotiators.base import ANLNegotiator
+
 from negmas.outcomes import Outcome
 from negmas.preferences import PresortingInverseUtilityFunction
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 from scipy.optimize import curve_fit
 import numpy as np
 
@@ -24,7 +26,7 @@ def aspiration_function(t, mx, rv, e):
     return (mx - rv) * (1.0 - np.power(t, e)) + rv
 
 
-class Goldie(SAONegotiator):
+class Goldie(ANLNegotiator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 

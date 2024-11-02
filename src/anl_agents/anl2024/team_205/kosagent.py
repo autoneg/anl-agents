@@ -8,13 +8,14 @@ the authors and the ANAC 2024 ANL competition.
 """
 
 import random
+from anl.anl2024.negotiators.base import ANLNegotiator
 import numpy as np
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 
 __all__ = ["KosAgent"]
 
 
-class KosAgent(SAONegotiator):
+class KosAgent(ANLNegotiator):
     # 変数の初期設定
     step = 0
     current_time = 0
