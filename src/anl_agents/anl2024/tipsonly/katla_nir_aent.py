@@ -11,6 +11,12 @@ import numpy as np
 __all__ = ["KatlaNirAgent"]
 
 
+def safelog(x, *args, **kwargs):
+    if x < 1e-10:
+        return -3000.0
+    return math.log(x, *args, **kwargs)
+
+
 class DetectingRegion:
     def __init__(self, T: int, Nt: int, Np: int):
         self.T = T  # Deadline
@@ -111,8 +117,8 @@ class DetectingRegion:
 
             for i in range(1, self.current_time):
                 history[i] = history[i] if history[i] != init_price else init_price - 1
-                p_star_i = math.log((init_price - history[i]) / (init_price - p_i_x))
-                t_star_i = math.log(i / self.T)
+                p_star_i = safelog((init_price - history[i]) / (init_price - p_i_x))
+                t_star_i = safelog(i / self.T)
                 up += p_star_i * t_star_i
                 down += t_star_i**2
 
@@ -362,7 +368,7 @@ class KatlaNirAgent(ANLNegotiator):
                 log_body = (p0 - pp) / (p0 - self.my_reserved_price)
 
                 if log_base != 1 and log_body != 1 and log_base > 0 and log_body > 0:
-                    new_beta = math.log(log_body) / math.log(log_base)
+                    new_beta = safelog(log_body) / safelog(log_base)
                     beta_gags.append(new_beta)
         down = 0
         for beta, prior in zip(beta_gags, self.detecting_region.prior_probabilities):

@@ -8,6 +8,12 @@ import numpy as np
 from negmas import SAOState, SAOResponse, Outcome
 
 
+def safelog(x, *args, **kwargs):
+    if x < 1e-10:
+        return -3000.0
+    return math.log(x, *args, **kwargs)
+
+
 def initialize_DetReg(
     initial_value, reserved_value, time_high=1000, time_low=10
 ) -> tuple:
@@ -344,10 +350,10 @@ class GeneralNegotiationModel(ANLNegotiator):
                 # pi*
                 numerator = p0 - pi
                 denominator = p0 - pix
-                pi_star = math.log(numerator // denominator)  # Base e log
+                pi_star = safelog(numerator // denominator)  # Base e log
 
                 # ti*
-                t_star = math.log(t // tix)
+                t_star = safelog(t // tix)
 
                 sum_of_tpi += pi_star * t_star
                 sum_of_ti += pow(t_star, 2)

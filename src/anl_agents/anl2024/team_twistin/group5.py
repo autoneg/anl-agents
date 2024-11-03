@@ -26,6 +26,12 @@ from operator import itemgetter
 __all__ = ["Group5"]
 
 
+def safelog(x, *args, **kwargs):
+    if x < 1e-10:
+        return -3000.0
+    return math.log(x, *args, **kwargs)
+
+
 class Group5(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
@@ -493,12 +499,12 @@ class Group5(ANLNegotiator):
             # assume there is a mistake in the paper, I use t_i instead of state.step.
             eq6_top = sum(
                 [
-                    math.log((offer0 - offer_i) / (offer0 - rv_x)) * math.log(t_i / t_x)
+                    safelog((offer0 - offer_i) / (offer0 - rv_x)) * safelog(t_i / t_x)
                     for t_i, offer_i in proper_offer_history[1:]
                 ]
             )
             eq6_bottom = sum(
-                [math.log(t_i / t_x) ** 2 for t_i, _ in proper_offer_history[1:]]
+                [safelog(t_i / t_x) ** 2 for t_i, _ in proper_offer_history[1:]]
             )
             b = eq6_top / eq6_bottom
 
