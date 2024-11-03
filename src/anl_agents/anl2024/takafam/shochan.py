@@ -189,7 +189,7 @@ class Shochan(SAONegotiator):
                         min_nash = i[0] + i[1]
                 ave_nash = ave_nash / len(my_frontier_utils)
                 # print(min_nash)
-            self._outcomes = [  # type: ignore
+            self._outcomes = [
                 w
                 for u, w in zip(my_frontier_utils, frontier_outcomes)
                 if u >= self.ufun.reserved_value
@@ -457,6 +457,7 @@ class Shochan(SAONegotiator):
                     return True
                 if len(self.opponent_utilities) > len(self.my_utilities):
                     return True
+
         return float(self.ufun(offer)) >= myasp
 
 
