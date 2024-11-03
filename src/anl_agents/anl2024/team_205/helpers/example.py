@@ -119,7 +119,7 @@ class AwesomeNegotiator(SAONegotiator):
 
         # update rational_outcomes by removing the outcomes that are below the reservation value of the opponent
         # Watch out: if the reserved value decreases, this will not add any outcomes.
-        rational_outcomes = self.rational_outcomes = [
+        self.rational_outcomes = [
             _
             for _ in self.rational_outcomes
             if self.opponent_ufun(_) > self.partner_reserved_value

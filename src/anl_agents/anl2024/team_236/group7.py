@@ -212,7 +212,6 @@ class Group7(SAONegotiator):
                 average_opponent_utility / amount_regarded_in_average
             )  # şimdiye kadar rakibin sunduğu tekliflerde onun utility'sinin ortalaması
 
-            i = 0
             for offer_utility in self.opponent_offer_utility_list[
                 -5:
             ][

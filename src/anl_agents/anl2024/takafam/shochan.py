@@ -1,16 +1,21 @@
-import random
-
 import numpy as np
-from negmas import nash_points, pareto_frontier
-from negmas import Outcome, ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas import (
+    Outcome,
+    ResponseType,
+    SAONegotiator,
+    SAOResponse,
+    SAOState,
+    nash_points,
+    pareto_frontier,
+)
 from scipy.optimize import curve_fit
-import matplotlib.pyplot as plt
 
 __all__ = ["Shochan"]
 
 
 def aspiration_function(t, mx, rv, e):
     return (mx - rv) * (1.0 - np.power(t, e)) + rv
+
 
 class Shochan(SAONegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
@@ -44,6 +49,7 @@ class Shochan(SAONegotiator):
           with our own reserved values when calculating the rational outcomes. This is the best case scenario for us because
           we have MORE negotiation power when the partner has LOWER utility.
     """
+
     def __init__(
         self,
         *args,
@@ -89,7 +95,6 @@ class Shochan(SAONegotiator):
         self.g4 = 0
         self.mode = 0
         self.plus = 0.10
-        
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -100,40 +105,46 @@ class Shochan(SAONegotiator):
         for i in range(len(self.opponent_times)):
             diff.append(self.opponent_times[i] - self.my_times[i])
         # diff = self.opponent_times - self.my_times
-        if(len(diff)==0):
-            diff_mean=0.01
+        if len(diff) == 0:
+            diff_mean = 0.01
         else:
             diff_mean = sum(diff) / len(diff)
-        
+
         self.diff_mean = diff_mean
 
-        asp = aspiration_function(state.relative_time / self.lasttime, 1.0, self.ufun.reserved_value, self.fe)
-        
+        asp = aspiration_function(
+            state.relative_time / self.lasttime, 1.0, self.ufun.reserved_value, self.fe
+        )
+
         self.e = self.fe + (1.0 - asp) * 100
 
         self.my_times.append(state.relative_time)
         if self.is_acceptable(state):
-            if((state.step)==0):
+            if (state.step) == 0:
                 one_step = 0.0001
             else:
                 one_step = (state.relative_time) / (state.step)
-            if(self.ufun(state.current_offer) >= self.ufun.reserved_value + self.plus):
+            if self.ufun(state.current_offer) >= self.ufun.reserved_value + self.plus:
                 return SAOResponse(ResponseType.ACCEPT_OFFER, state.current_offer)
-                
 
         else:
-            self.preoffer.append((self.ufun(state.current_offer),self.opponent_ufun(state.current_offer)))
+            self.preoffer.append(
+                (
+                    self.ufun(state.current_offer),
+                    self.opponent_ufun(state.current_offer),
+                )
+            )
         # The offering strategy
         # nash
         ufuns = (self.ufun, self.opponent_ufun)
-        if((state.step)==0):
+        if (state.step) == 0:
             one_step = 0.0001
         else:
             one_step = (state.relative_time) / (state.step)
         lasttime = (1.0 // one_step) * one_step
         self.lasttime = lasttime
         # The offering strategy
-            
+
         # nash
         ufuns = (self.ufun, self.opponent_ufun)
         # list all outcomes
@@ -155,7 +166,7 @@ class Shochan(SAONegotiator):
         # Set the acceptable utility limit
         self._min_acceptable = self.ufun.reserved_value
         self.y2 = self.ufun.reserved_value
-    
+
         # We only update our estimate of the rational list of outcomes if it is not set or
         # there is a change in estimated reserved value
         if (
@@ -165,40 +176,35 @@ class Shochan(SAONegotiator):
             # The rational set of outcomes sorted dependingly according to our utility function
             # and the opponent utility function (in that order).
             ave_nash = 1.0
-            if(len(my_frontier_utils)!=0):
+            if len(my_frontier_utils) != 0:
                 ave_nash = 0.0
-                min_nash = my_frontier_utils[0]+ opp_frontier_utils[0]
+                min_nash = my_frontier_utils[0] + opp_frontier_utils[0]
                 for i in frontier_utils:
                     ave_nash = ave_nash + i[0] + i[1]
-                    if(min_nash > i[0] + i[1]):
+                    if min_nash > i[0] + i[1]:
                         # print(min_nash)
                         # print(i[0] + i[1])
                         min_nash = i[0] + i[1]
                 ave_nash = ave_nash / len(my_frontier_utils)
-                
-                # print(min_nash)
 
+                # print(min_nash)
 
             self._outcomes = [
                 w
                 for u, w in zip(my_frontier_utils, frontier_outcomes)
                 if u >= self.ufun.reserved_value
-            ]     
-            self._outcomes2 = [
-                w
-                for u, w in zip(my_frontier_utils, frontier_outcomes)
-            ]     
+            ]
+            self._outcomes2 = [w for u, w in zip(my_frontier_utils, frontier_outcomes)]
 
             self._rational = sorted(
                 [
                     (my_util, opp_util, _)
                     for _ in self._outcomes
                     if (my_util := float(self.ufun(_))) > self.ufun.reserved_value
-                    and (opp_util := float(self.opponent_ufun(_)))
-                    > 0
+                    and (opp_util := float(self.opponent_ufun(_))) > 0
                 ],
             )
-            self.nidx = len(self._rational)-1
+            self.nidx = len(self._rational) - 1
 
             self._opprational = sorted(
                 [
@@ -206,8 +212,7 @@ class Shochan(SAONegotiator):
                     for _ in self._outcomes
                     if (my_util := float(self.ufun(_))) > 0
                     # if (my_util := float(self.ufun(_))) > self.ufun.reserved_value
-                    and (opp_util := float(self.opponent_ufun(_)))
-                    > 0
+                    and (opp_util := float(self.opponent_ufun(_))) > 0
                 ],
             )
 
@@ -216,11 +221,10 @@ class Shochan(SAONegotiator):
                     (my_util, opp_util, _)
                     for _ in outcomes
                     if (my_util := float(self.ufun(_))) > 0
-                    and (opp_util := float(self.opponent_ufun(_)))
-                    > 0
+                    and (opp_util := float(self.opponent_ufun(_))) > 0
                 ],
             )
-            self.nidx = len(self._rational)-1
+            self.nidx = len(self._rational) - 1
 
             self._opprational2 = sorted(
                 [
@@ -228,8 +232,7 @@ class Shochan(SAONegotiator):
                     for _ in outcomes
                     if (my_util := float(self.ufun(_))) > 0
                     # if (my_util := float(self.ufun(_))) > self.ufun.reserved_value
-                    and (opp_util := float(self.opponent_ufun(_)))
-                    > 0
+                    and (opp_util := float(self.opponent_ufun(_))) > 0
                 ],
             )
 
@@ -240,9 +243,9 @@ class Shochan(SAONegotiator):
             difx = x2 - x1
             dify = y1 - y2
             self.y2 = y2
-            if(difx - dify >= 0.2):
+            if difx - dify >= 0.2:
                 self.mode = 1
-            if(self.nmi.n_steps <= 50):
+            if self.nmi.n_steps <= 50:
                 self.mode = 1
             # print(self.mode)
             # x1 = int(x1*100)/100
@@ -253,14 +256,12 @@ class Shochan(SAONegotiator):
             #     print("nash")
             #     print(nash)
 
-        
             # print(self.nidx)
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
         max_rational = len(self._rational) - 1
         if not self._rational:
             return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
-        
 
         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
@@ -270,17 +271,13 @@ class Shochan(SAONegotiator):
 
         border = self.ufun.reserved_value
 
-
-
         myasp = aspiration_function(state.relative_time, 1.0, border, self.fe)
-
-
 
         myut = self.nash
         myut = self.ufun.reserved_value + 0.1
-        # myut = self.ufun.reserved_value 
+        # myut = self.ufun.reserved_value
         # if(state.step + 1 == self.nmi.n_steps or state.relative_time + 2 * one_step > 1.0):
-        if(state.relative_time + 3 * one_step > 1.0):
+        if state.relative_time + 3 * one_step > 1.0:
             # print("num")
             # print([len(self.opponent_utilities),len(self.my_utilities)])
             # print(self.nmi.n_steps)
@@ -288,11 +285,14 @@ class Shochan(SAONegotiator):
             opmin = sorted(self.opponent_utilities)[0]
             opmax = sorted(self.opponent_utilities)[-1]
             opmin2 = sorted(self.opponent_utilities)[1]
-            target = opmax - (opmax - opmin) * (state.relative_time) / (self.opponent_times[-1]) 
-            target2 = opmin - (opmin2 - opmin)
+            target = (
+                opmax
+                - (opmax - opmin) * (state.relative_time) / (self.opponent_times[-1])
+            )
+            opmin - (opmin2 - opmin)
 
             indop = len(self._opprational2) - 1
-            if(nash):
+            if nash:
                 outcome4 = self.nasho
             else:
                 outcome4 = self._best
@@ -301,15 +301,15 @@ class Shochan(SAONegotiator):
             tttt = []
             ttttt = []
             # print(myut)
-            while(indop!=0):
-                if(myut <= self._opprational2[indop][1]):
+            while indop != 0:
+                if myut <= self._opprational2[indop][1]:
                     myut = self._opprational2[indop][1]
                     outcome = self._opprational2[indop][2]
                     tttt.append(self._opprational2[indop][1])
                     outcome4 = outcome
-                nextidx = max(indop-1, 0)
+                nextidx = max(indop - 1, 0)
                 ttttt.append(self._opprational2[indop][1])
-                if(self._opprational2[nextidx][0] >= target):
+                if self._opprational2[nextidx][0] >= target:
                     indop = nextidx
                 else:
                     break
@@ -326,7 +326,7 @@ class Shochan(SAONegotiator):
             # outcomes = list(self.ufun.outcome_space.enumerate_or_sample())
             # frontier_utils, frontier_indices = pareto_frontier(ufuns2, outcomes)
             # nash2 = nash_points(ufuns2, frontier_utils)  # type: ignore
-            # # nash2 = 
+            # # nash2 =
             # if(nash):
             #     print("nash")
             #     print(nash)
@@ -334,37 +334,35 @@ class Shochan(SAONegotiator):
             #     print("nash2")
             #     print(nash2)
 
-
-            if(state.step <= 50):
-                if(self.ufun(self._best) > self.ufun.reserved_value + self.plus):
+            if state.step <= 50:
+                if self.ufun(self._best) > self.ufun.reserved_value + self.plus:
                     outcome = self._best
                 else:
                     outcome = self.nasho
                 # if(self.ufun(self._nasho) >= self.ufun(self._best))
-                
-                
+
             else:
-                if(nash):
+                if nash:
                     outcome = self.nasho
-                    if(self.ufun(self._best) >= self.ufun.reserved_value  + self.plus):
-                        if(self.ufun(self._best) <= self.ufun(outcome4)):
+                    if self.ufun(self._best) >= self.ufun.reserved_value + self.plus:
+                        if self.ufun(self._best) <= self.ufun(outcome4):
                             outcome = outcome4
                         else:
                             # print("aaa")
                             outcome = self._best
                         # if(len(self.opponent_utilities) == len(self.my_utilities)):
-                        if(self.opponent_utilities[-1] < self.opponent_utilities[-2]):
+                        if self.opponent_utilities[-1] < self.opponent_utilities[-2]:
                             # print([len(self.opponent_utilities),len(self.my_utilities)])
                             # print(self.nmi.n_steps)
-                            if(len(self.opponent_utilities) > len(self.my_utilities)):
+                            if len(self.opponent_utilities) > len(self.my_utilities):
                                 outcome = outcome4
                             else:
                                 outcome = self.nasho
                 else:
                     # print("nothing")
-                    if(self.ufun(self._best) >= self.ufun.reserved_value):
+                    if self.ufun(self._best) >= self.ufun.reserved_value:
                         outcome = self._best
-                        if(self.ufun(self._best) <= self.ufun(outcome4)):
+                        if self.ufun(self._best) <= self.ufun(outcome4):
                             outcome = outcome4
                     else:
                         outcome = self._opprational[self.nidx][2]
@@ -376,18 +374,18 @@ class Shochan(SAONegotiator):
             outcome = self.ufun.best()
             border = self.ufun.reserved_value
             border = self.y2
-            if(nash):
-                border = max(border,self.ufun(self.nasho))
-            if(self.mode==1):
+            if nash:
+                border = max(border, self.ufun(self.nasho))
+            if self.mode == 1:
                 myasp = aspiration_function(state.relative_time, 1.0, border, self.fe)
                 indmy = max_rational
-                while(indmy!=0):
-                    nextidx = max(indmy-1 , 0)
-                    if(self._rational[nextidx][0] >= myasp):
+                while indmy != 0:
+                    nextidx = max(indmy - 1, 0)
+                    if self._rational[nextidx][0] >= myasp:
                         indmy = nextidx
                     else:
                         break
-                
+
                 indx = indmy
                 outcome = self._rational[indx][-1]
 
@@ -403,59 +401,59 @@ class Shochan(SAONegotiator):
         # If there is no offer, there is nothing to accept
         if offer is None:
             return False
-        if((state.step)==0):
+        if (state.step) == 0:
             one_step = 0.0001
         else:
             one_step = (state.relative_time) / (state.step)
-        
-        
+
         if self._best is None:
             self._best = offer
         else:
-            if(self.ufun(offer) > self.ufun(self._best)):
+            if self.ufun(offer) > self.ufun(self._best):
                 self._best = offer
-            elif(self.ufun(offer) == self.ufun(self._best)):
-                if(self.opponent_ufun(offer) < self.opponent_ufun(self._best)):
+            elif self.ufun(offer) == self.ufun(self._best):
+                if self.opponent_ufun(offer) < self.opponent_ufun(self._best):
                     self._best = offer
 
         self.opponent_times.append(state.relative_time)
         self.opponent_utilities.append(self.opponent_ufun(offer))
-                    
+
         # Find the current aspiration level
         myasp = aspiration_function(
             state.relative_time, 1.0, self.ufun.reserved_value, self.e
         )
-        opasp = aspiration_function(
+        aspiration_function(
             state.relative_time, 1.0, self.opponent_ufun.reserved_value, self.e
         )
-        ans = False
 
         pat = self.pat * self.lasttime
         border = self.ufun.reserved_value
-        if(state.relative_time >= pat):
-            myasp = aspiration_function(pat / self.lasttime, 1.0, self.ufun.reserved_value, self.fe)
-            ratio = (myasp - self.ufun.reserved_value) / ((self.lasttime - pat)*(self.lasttime - pat))
+        if state.relative_time >= pat:
+            myasp = aspiration_function(
+                pat / self.lasttime, 1.0, self.ufun.reserved_value, self.fe
+            )
+            ratio = (myasp - self.ufun.reserved_value) / (
+                (self.lasttime - pat) * (self.lasttime - pat)
+            )
             xd = (state.relative_time / self.lasttime) - pat
-            y = myasp - (ratio*xd*xd) 
-            border = max(border,y)
+            y = myasp - (ratio * xd * xd)
+            border = max(border, y)
         else:
             border = self.ufun.reserved_value
 
-
-
         myasp = aspiration_function(state.relative_time, 1.0, border, self.e)
 
-        if(state.relative_time + 1 * one_step > 1.0):
-        # if(state.step + 1 == self.nmi.n_steps or state.relative_time + 1 * one_step > 1.0):
+        if state.relative_time + 1 * one_step > 1.0:
+            # if(state.step + 1 == self.nmi.n_steps or state.relative_time + 1 * one_step > 1.0):
             # print(self.predict)
             # print("last")
             # print([len(self.opponent_utilities),len(self.my_utilities)])
             # print(self.nmi.n_steps)
             # print(state.relative_time)
-            if(float(self.ufun(offer)) >= self.ufun.reserved_value + self.plus):
-                if(self.opponent_utilities[-1] <= self.opponent_utilities[-2]):
+            if float(self.ufun(offer)) >= self.ufun.reserved_value + self.plus:
+                if self.opponent_utilities[-1] <= self.opponent_utilities[-2]:
                     return True
-                if(len(self.opponent_utilities) > len(self.my_utilities)):
+                if len(self.opponent_utilities) > len(self.my_utilities):
                     return True
                 # myasp = 0.0
 
@@ -465,7 +463,7 @@ class Shochan(SAONegotiator):
         # the current aspiration
 
         # return ans
-        return (float(self.ufun(offer)) >= myasp)
+        return float(self.ufun(offer)) >= myasp
 
 
 # ?代目 3rd
@@ -545,7 +543,7 @@ class Shochan(SAONegotiator):
 #         self.g3 = 0
 #         self.g4 = 0
 #         self.mode = 0
-        
+
 
 #     def __call__(self, state: SAOState) -> SAOResponse:
 #         assert self.ufun and self.opponent_ufun
@@ -560,11 +558,11 @@ class Shochan(SAONegotiator):
 #             diff_mean=0.01
 #         else:
 #             diff_mean = sum(diff) / len(diff)
-        
+
 #         self.diff_mean = diff_mean
 
 #         asp = aspiration_function(state.relative_time / self.lasttime, 1.0, self.ufun.reserved_value, self.fe)
-        
+
 #         self.e = self.fe + (1.0 - asp) * 100
 
 #         self.my_times.append(state.relative_time)
@@ -575,7 +573,7 @@ class Shochan(SAONegotiator):
 #                 one_step = (state.relative_time) / (state.step)
 #             if(self.ufun(state.current_offer) > self.ufun.reserved_value + 0.1):
 #                 return SAOResponse(ResponseType.ACCEPT_OFFER, state.current_offer)
-                
+
 
 #         else:
 #             self.preoffer.append((self.ufun(state.current_offer),self.opponent_ufun(state.current_offer)))
@@ -589,7 +587,7 @@ class Shochan(SAONegotiator):
 #         lasttime = (1.0 // one_step) * one_step
 #         self.lasttime = lasttime
 #         # The offering strategy
-            
+
 #         # nash
 #         ufuns = (self.ufun, self.opponent_ufun)
 #         # list all outcomes
@@ -611,7 +609,7 @@ class Shochan(SAONegotiator):
 #         # Set the acceptable utility limit
 #         self._min_acceptable = self.ufun.reserved_value
 #         self.y2 = self.ufun.reserved_value
-    
+
 #         # We only update our estimate of the rational list of outcomes if it is not set or
 #         # there is a change in estimated reserved value
 #         if (
@@ -631,7 +629,7 @@ class Shochan(SAONegotiator):
 #                         # print(i[0] + i[1])
 #                         min_nash = i[0] + i[1]
 #                 ave_nash = ave_nash / len(my_frontier_utils)
-                
+
 #                 # print(min_nash)
 
 
@@ -639,11 +637,11 @@ class Shochan(SAONegotiator):
 #                 w
 #                 for u, w in zip(my_frontier_utils, frontier_outcomes)
 #                 if u >= self.ufun.reserved_value
-#             ]     
+#             ]
 #             self._outcomes2 = [
 #                 w
 #                 for u, w in zip(my_frontier_utils, frontier_outcomes)
-#             ]     
+#             ]
 
 #             self._rational = sorted(
 #                 [
@@ -706,14 +704,14 @@ class Shochan(SAONegotiator):
 #             y1 = int(y1*100)/100
 #             y2 = int(y2*100)/100
 
-        
+
 #             # print(self.nidx)
 #         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
 #         # then just revert to offering our top offer
 #         max_rational = len(self._rational) - 1
 #         if not self._rational:
 #             return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
-        
+
 
 #         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
 #         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
@@ -724,20 +722,18 @@ class Shochan(SAONegotiator):
 #         border = self.ufun.reserved_value
 
 
-
 #         myasp = aspiration_function(state.relative_time, 1.0, border, self.fe)
-
 
 
 #         myut = self.nash
 #         myut = self.ufun.reserved_value + 0.1
-#         # myut = self.ufun.reserved_value 
+#         # myut = self.ufun.reserved_value
 #         # if(state.step + 1 == self.nmi.n_steps or state.relative_time + 2 * one_step > 1.0):
 #         if(state.relative_time + 3 * one_step > 1.0):
 #             opmin = sorted(self.opponent_utilities)[0]
 #             opmax = sorted(self.opponent_utilities)[-1]
 #             opmin2 = sorted(self.opponent_utilities)[1]
-#             target = opmax - (opmax - opmin) * (state.relative_time) / (self.opponent_times[-1]) 
+#             target = opmax - (opmax - opmin) * (state.relative_time) / (self.opponent_times[-1])
 #             # target = opmin - (opmin2 - opmin)
 
 #             indop = len(self._opprational2) - 1
@@ -769,8 +765,8 @@ class Shochan(SAONegotiator):
 #                 else:
 #                     outcome = self.nasho
 #                 # if(self.ufun(self._nasho) >= self.ufun(self._best))
-                
-                
+
+
 #             else:
 #                 if(nash):
 #                     outcome = self.nasho
@@ -809,7 +805,7 @@ class Shochan(SAONegotiator):
 #                         indmy = nextidx
 #                     else:
 #                         break
-                
+
 #                 indx = indmy
 #                 outcome = self._rational[indx][-1]
 
@@ -829,8 +825,8 @@ class Shochan(SAONegotiator):
 #             one_step = 0.0001
 #         else:
 #             one_step = (state.relative_time) / (state.step)
-        
-        
+
+
 #         if self._best is None:
 #             self._best = offer
 #         else:
@@ -842,7 +838,7 @@ class Shochan(SAONegotiator):
 
 #         self.opponent_times.append(state.relative_time)
 #         self.opponent_utilities.append(self.opponent_ufun(offer))
-                    
+
 #         # Find the current aspiration level
 #         myasp = aspiration_function(
 #             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -858,11 +854,10 @@ class Shochan(SAONegotiator):
 #             myasp = aspiration_function(pat / self.lasttime, 1.0, self.ufun.reserved_value, self.fe)
 #             ratio = (myasp - self.ufun.reserved_value) / ((self.lasttime - pat)*(self.lasttime - pat))
 #             xd = (state.relative_time / self.lasttime) - pat
-#             y = myasp - (ratio*xd*xd) 
+#             y = myasp - (ratio*xd*xd)
 #             border = max(border,y)
 #         else:
 #             border = self.ufun.reserved_value
-
 
 
 #         myasp = aspiration_function(state.relative_time, 1.0, border, self.e)
@@ -882,7 +877,7 @@ class Shochan(SAONegotiator):
 
 #         # return ans
 #         return (float(self.ufun(offer)) >= myasp)
-    
+
 
 # ?代目 2nd2nd
 # class Shochan(SAONegotiator):
@@ -962,7 +957,7 @@ class Shochan(SAONegotiator):
 #         self.mode = 0
 #         # self.opmin = 1.0
 #         # self.most
-        
+
 
 #     def __call__(self, state: SAOState) -> SAOResponse:
 #         assert self.ufun and self.opponent_ufun
@@ -977,11 +972,11 @@ class Shochan(SAONegotiator):
 #             diff_mean=0.01
 #         else:
 #             diff_mean = sum(diff) / len(diff)
-        
+
 #         self.diff_mean = diff_mean
 
 #         asp = aspiration_function(state.relative_time / self.lasttime, 1.0, self.ufun.reserved_value, self.fe)
-        
+
 #         self.e = self.fe + (1.0 - asp) * 100
 
 #         self.my_times.append(state.relative_time)
@@ -1021,7 +1016,7 @@ class Shochan(SAONegotiator):
 #         lasttime = (1.0 // one_step) * one_step
 #         self.lasttime = lasttime
 #         # The offering strategy
-            
+
 #         # nash
 #         ufuns = (self.ufun, self.opponent_ufun)
 #         # list all outcomes
@@ -1052,8 +1047,8 @@ class Shochan(SAONegotiator):
 #         #     w
 #         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
 #         #     if u >= self._min_acceptable
-#         # ]        
-    
+#         # ]
+
 #         # We only update our estimate of the rational list of outcomes if it is not set or
 #         # there is a change in estimated reserved value
 #         if (
@@ -1084,7 +1079,7 @@ class Shochan(SAONegotiator):
 #                         # print(i[0] + i[1])
 #                         min_nash = i[0] + i[1]
 #                 ave_nash = ave_nash / len(my_frontier_utils)
-                
+
 #                 # print(min_nash)
 
 
@@ -1092,11 +1087,11 @@ class Shochan(SAONegotiator):
 #                 w
 #                 for u, w in zip(my_frontier_utils, frontier_outcomes)
 #                 if u >= self.ufun.reserved_value
-#             ]     
+#             ]
 #             self._outcomes2 = [
 #                 w
 #                 for u, w in zip(my_frontier_utils, frontier_outcomes)
-#             ]     
+#             ]
 
 #             # if(len(my_frontier_utils)!=0):
 #             #     for _ in outcomes:
@@ -1109,7 +1104,7 @@ class Shochan(SAONegotiator):
 #             #         if (float(self.ufun(_)) + float(self.opponent_ufun(_)) >= 1.0):
 #             #             if( _ not in self._outcomes):
 #             #                 self._outcomes.append(_)
-            
+
 #                     # if (float(self.ufun(_)) + float(self.opponent_ufun(_)) >= ave_nash - 0.1):
 #                     #     if( _ not in self._outcomes):
 #                     #         self._outcomes.append(_)
@@ -1214,14 +1209,13 @@ class Shochan(SAONegotiator):
 #             # print([self.g1,self.g2,self.g3,self.g4])
 
 
-        
 #             # print(self.nidx)
 #         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
 #         # then just revert to offering our top offer
 #         max_rational = len(self._rational) - 1
 #         if not self._rational:
 #             return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
-        
+
 
 #         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
 #         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
@@ -1239,7 +1233,7 @@ class Shochan(SAONegotiator):
 #         #         break
 
 #         # min_indx = self.nidx
-        
+
 #         # pat = 0.95
 #         # pat = self.pat * self.lasttime
 #         border = self.ufun.reserved_value
@@ -1247,7 +1241,7 @@ class Shochan(SAONegotiator):
 #         #     myasp = aspiration_function(pat / self.lasttime, 1.0, self.ufun.reserved_value, self.fe)
 #         #     ratio = (myasp - self.ufun.reserved_value) / ((self.lasttime - pat)*(self.lasttime - pat))
 #         #     xd = (state.relative_time / self.lasttime) - pat
-#         #     y = myasp - (ratio*xd*xd) 
+#         #     y = myasp - (ratio*xd*xd)
 #         #     # y = aspiration_function(xd,self.lasttime - xd, myasp, self.ufun.reserved_value, self.e)
 #         #     # myasp = y
 #         #     border = max(border,y)
@@ -1267,7 +1261,7 @@ class Shochan(SAONegotiator):
 #         #         tmp = popt[1]
 #         #         # print(state.relative_time)
 #         #         # print(popt)
-#         #         indop = len(self._opprational) - 1 
+#         #         indop = len(self._opprational) - 1
 #         #         while(indop!=0):
 #         #             nextidx = max(indop-1, 0)
 #         #             if(self._opprational[nextidx][0] >= tmp):
@@ -1314,20 +1308,19 @@ class Shochan(SAONegotiator):
 #         #         indmy = nextidx
 #         #     else:
 #         #         break
-        
+
 #         # indx = indmy
 #         # outcome = self._rational[indx][-1]
 
 
-
 #         myut = self.nash
 #         myut = self.ufun.reserved_value + 0.1
-#         # myut = self.ufun.reserved_value 
+#         # myut = self.ufun.reserved_value
 #         if(state.relative_time + 2 * one_step > 1.0):
 #             opmin = sorted(self.opponent_utilities)[0]
 #             # print("-----------------------")
 #             # print(opmin)
-#             indop = len(self._opprational) - 1 
+#             indop = len(self._opprational) - 1
 #             while(indop!=0):
 #                 if(myut <= self._opprational[indop][1]):
 #                     myut = self._opprational[indop][1]
@@ -1349,8 +1342,8 @@ class Shochan(SAONegotiator):
 #                 else:
 #                     outcome = self.nasho
 #                 # if(self.ufun(self._nasho) >= self.ufun(self._best))
-                
-                
+
+
 #             else:
 #                 if(nash):
 #                     outcome = self.nasho
@@ -1379,10 +1372,10 @@ class Shochan(SAONegotiator):
 #                         indmy = nextidx
 #                     else:
 #                         break
-                
+
 #                 indx = indmy
 #                 outcome = self._rational[indx][-1]
-            
+
 #         return SAOResponse(ResponseType.REJECT_OFFER, outcome)
 #         # return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
 
@@ -1398,11 +1391,11 @@ class Shochan(SAONegotiator):
 #             one_step = 0.0001
 #         else:
 #             one_step = (state.relative_time) / (state.step)
-        
+
 #         # print("offer")
 #         # print(offer)
 #         # print(negmas.outcomes.outcome2dict(offer))
-        
+
 #         if self._best is None:
 #             self._best = offer
 #         else:
@@ -1418,7 +1411,7 @@ class Shochan(SAONegotiator):
 
 #         self.opponent_times.append(state.relative_time)
 #         self.opponent_utilities.append(self.opponent_ufun(offer))
-                    
+
 #         # Find the current aspiration level
 #         myasp = aspiration_function(
 #             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -1434,7 +1427,7 @@ class Shochan(SAONegotiator):
 #             myasp = aspiration_function(pat / self.lasttime, 1.0, self.ufun.reserved_value, self.fe)
 #             ratio = (myasp - self.ufun.reserved_value) / ((self.lasttime - pat)*(self.lasttime - pat))
 #             xd = (state.relative_time / self.lasttime) - pat
-#             y = myasp - (ratio*xd*xd) 
+#             y = myasp - (ratio*xd*xd)
 #             border = max(border,y)
 
 #             # asp = aspiration_function(state.relative_time, 1.0, rv, self.e)
@@ -1453,7 +1446,7 @@ class Shochan(SAONegotiator):
 #                 tmp = popt[1]
 #                 # print(state.relative_time)
 #                 # print(popt)
-#                 indop = len(self._opprational) - 1 
+#                 indop = len(self._opprational) - 1
 #                 while(indop!=0):
 #                     nextidx = max(indop-1, 0)
 #                     if(self._opprational[nextidx][0] >= tmp):
@@ -1588,7 +1581,7 @@ class Shochan(SAONegotiator):
 #         self.nasho: Outcome = None
 #         # self.opmin = 1.0
 #         # self.most
-        
+
 
 #     def __call__(self, state: SAOState) -> SAOResponse:
 #         assert self.ufun and self.opponent_ufun
@@ -1603,11 +1596,11 @@ class Shochan(SAONegotiator):
 #             diff_mean=0.01
 #         else:
 #             diff_mean = sum(diff) / len(diff)
-        
+
 #         self.diff_mean = diff_mean
 
 #         asp = aspiration_function(state.relative_time / self.lasttime, 1.0, self.ufun.reserved_value, self.fe)
-        
+
 #         self.e = self.fe + (1.0 - asp) * 100
 
 #         self.my_times.append(state.relative_time)
@@ -1669,7 +1662,7 @@ class Shochan(SAONegotiator):
 #         lasttime = (1.0 // one_step) * one_step
 #         self.lasttime = lasttime
 #         # The offering strategy
-            
+
 #         # nash
 #         ufuns = (self.ufun, self.opponent_ufun)
 #         # list all outcomes
@@ -1706,8 +1699,8 @@ class Shochan(SAONegotiator):
 #         #     w
 #         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
 #         #     if u >= self._min_acceptable
-#         # ]        
-    
+#         # ]
+
 #         # We only update our estimate of the rational list of outcomes if it is not set or
 #         # there is a change in estimated reserved value
 #         if (
@@ -1745,7 +1738,7 @@ class Shochan(SAONegotiator):
 #                 w
 #                 for u, w in zip(my_frontier_utils, frontier_outcomes)
 #                 if u >= self.ufun.reserved_value
-#             ]     
+#             ]
 
 #             # if(len(my_frontier_utils)!=0):
 #             #     for _ in outcomes:
@@ -1758,7 +1751,7 @@ class Shochan(SAONegotiator):
 #             #         if (float(self.ufun(_)) + float(self.opponent_ufun(_)) >= 1.0):
 #             #             if( _ not in self._outcomes):
 #             #                 self._outcomes.append(_)
-            
+
 #                     # if (float(self.ufun(_)) + float(self.opponent_ufun(_)) >= ave_nash - 0.1):
 #                     #     if( _ not in self._outcomes):
 #                     #         self._outcomes.append(_)
@@ -1800,7 +1793,7 @@ class Shochan(SAONegotiator):
 #         max_rational = len(self._rational) - 1
 #         if not self._rational:
 #             return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
-        
+
 
 #         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
 #         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
@@ -1818,7 +1811,7 @@ class Shochan(SAONegotiator):
 #         #         break
 
 #         # min_indx = self.nidx
-        
+
 #         pat = 0.95
 #         pat = self.pat * self.lasttime
 #         border = self.ufun.reserved_value
@@ -1826,7 +1819,7 @@ class Shochan(SAONegotiator):
 #             myasp = aspiration_function(pat / self.lasttime, 1.0, self.ufun.reserved_value, self.fe)
 #             ratio = (myasp - self.ufun.reserved_value) / ((self.lasttime - pat)*(self.lasttime - pat))
 #             xd = (state.relative_time / self.lasttime) - pat
-#             y = myasp - (ratio*xd*xd) 
+#             y = myasp - (ratio*xd*xd)
 #             # y = aspiration_function(xd,self.lasttime - xd, myasp, self.ufun.reserved_value, self.e)
 #             # myasp = y
 #             border = max(border,y)
@@ -1846,7 +1839,7 @@ class Shochan(SAONegotiator):
 #                 tmp = popt[1]
 #                 # print(state.relative_time)
 #                 # print(popt)
-#                 indop = len(self._opprational) - 1 
+#                 indop = len(self._opprational) - 1
 #                 while(indop!=0):
 #                     nextidx = max(indop-1, 0)
 #                     if(self._opprational[nextidx][0] >= tmp):
@@ -1879,7 +1872,7 @@ class Shochan(SAONegotiator):
 #                 indmy = nextidx
 #             else:
 #                 break
-        
+
 #         indx = indmy
 #         outcome = self._rational[indx][-1]
 #         myut = self.ufun.reserved_value + 0.15
@@ -1892,7 +1885,7 @@ class Shochan(SAONegotiator):
 #             # print(one_step)
 #             # print(self.lasttime)
 #             # print(opmin)
-#             indop = len(self._opprational) - 1 
+#             indop = len(self._opprational) - 1
 #             while(indop!=0):
 #                 if(myut <= self._opprational[indop][1]):
 #                     myut = self._opprational[indop][1]
@@ -1920,7 +1913,7 @@ class Shochan(SAONegotiator):
 #                 if(self.ufun(outcome) <=  self.ufun(outcome2)):
 #                     outcome = outcome2
 
-                    
+
 #             # print(self.ufun(outcome))
 #             # print(self.opponent_ufun(outcome))
 #             # outcome = self._best
@@ -1930,7 +1923,7 @@ class Shochan(SAONegotiator):
 #         else:
 #             outcome = self.ufun.best()
 
-            
+
 #         return SAOResponse(ResponseType.REJECT_OFFER, outcome)
 #         # return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
 
@@ -1951,13 +1944,13 @@ class Shochan(SAONegotiator):
 #             one_step = (self.opponent_times[-1] - self.opponent_times[1]) / (state.step - 1)
 #             # one_step3 = (self.opponent_times[-1] - self.opponent_times[0]) / (state.step)
 
-        
+
 #         # print("offer")
 #         # print(offer)
 #         # print(negmas.outcomes.outcome2dict(offer))
 #         # print(self.opponent_times[0])
 #         # print(self.opponent_times[1])
-        
+
 #         if self._best is None:
 #             if(self.ufun(offer) > self.ufun.reserved_value):
 #                 self._best = offer
@@ -1970,7 +1963,7 @@ class Shochan(SAONegotiator):
 #                 if(self.opponent_ufun(offer) < self.opponent_ufun(self._best)):
 #                     self._best = offer
 
-                    
+
 #         # Find the current aspiration level
 #         myasp = aspiration_function(
 #             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -1986,7 +1979,7 @@ class Shochan(SAONegotiator):
 #             myasp = aspiration_function(pat / self.lasttime, 1.0, self.ufun.reserved_value, self.fe)
 #             ratio = (myasp - self.ufun.reserved_value) / ((self.lasttime - pat)*(self.lasttime - pat))
 #             xd = (state.relative_time / self.lasttime) - pat
-#             y = myasp - (ratio*xd*xd) 
+#             y = myasp - (ratio*xd*xd)
 #             border = max(border,y)
 
 #             # asp = aspiration_function(state.relative_time, 1.0, rv, self.e)
@@ -2005,7 +1998,7 @@ class Shochan(SAONegotiator):
 #                 tmp = popt[1]
 #                 # print(state.relative_time)
 #                 # print(popt)
-#                 indop = len(self._opprational) - 1 
+#                 indop = len(self._opprational) - 1
 #                 while(indop!=0):
 #                     nextidx = max(indop-1, 0)
 #                     if(self._opprational[nextidx][0] >= tmp):
@@ -2053,7 +2046,6 @@ class Shochan(SAONegotiator):
 
 #         # return ans
 #         return (float(self.ufun(offer)) >= myasp)
-
 
 
 # ?代目
@@ -2124,9 +2116,9 @@ class Shochan(SAONegotiator):
 #         self.opponent_ufun.reserved_value = 0.0
 #         self.lasttime = 1.0
 #         self.diffmean = 0.01
-        
+
 #         # self.most
-        
+
 
 #     def __call__(self, state: SAOState) -> SAOResponse:
 #         assert self.ufun and self.opponent_ufun
@@ -2141,7 +2133,7 @@ class Shochan(SAONegotiator):
 #             diff_mean=0.01
 #         else:
 #             diff_mean = sum(diff) / len(diff)
-        
+
 #         self.diff_mean = diff_mean
 
 #         self.my_times.append(state.relative_time)
@@ -2195,8 +2187,8 @@ class Shochan(SAONegotiator):
 #         #     w
 #         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
 #         #     if u >= self._min_acceptable
-#         # ]        
-    
+#         # ]
+
 #         # We only update our estimate of the rational list of outcomes if it is not set or
 #         # there is a change in estimated reserved value
 #         if (
@@ -2211,14 +2203,13 @@ class Shochan(SAONegotiator):
 #                         # print(i[0] + i[1])
 #                         min_nash = i[0] + i[1]
 #                 # print(min_nash)
-            
 
 
 #             self._outcomes = [
 #                 w
 #                 for u, w in zip(my_frontier_utils, frontier_outcomes)
 #                 if u >= self.ufun.reserved_value
-#             ]     
+#             ]
 
 #             if(len(my_frontier_utils)!=0):
 #                 for _ in outcomes:
@@ -2263,7 +2254,7 @@ class Shochan(SAONegotiator):
 #         max_rational = len(self._rational) - 1
 #         if not self._rational:
 #             return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
-        
+
 
 #         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
 #         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
@@ -2276,7 +2267,7 @@ class Shochan(SAONegotiator):
 #             myasp = aspiration_function(pat / self.lasttime, 1.0, self.ufun.reserved_value, self.e)
 #             ratio = (myasp - self.ufun.reserved_value) / ((lasttime - pat)*(lasttime - pat))
 #             xd = (state.relative_time / self.lasttime) - pat
-#             y = myasp - (ratio*xd*xd) 
+#             y = myasp - (ratio*xd*xd)
 #             border = max(border,y)
 
 #             # asp = aspiration_function(state.relative_time, 1.0, rv, self.e)
@@ -2295,7 +2286,7 @@ class Shochan(SAONegotiator):
 #                 tmp = popt[1]
 #                 # print(state.relative_time)
 #                 # print(popt)
-#                 indop = len(self._opprational) - 1 
+#                 indop = len(self._opprational) - 1
 #                 while(indop!=0):
 #                     nextidx = max(indop, 0)
 #                     if(self._opprational[nextidx][0] >= tmp):
@@ -2328,7 +2319,7 @@ class Shochan(SAONegotiator):
 #                 indmy = nextidx
 #             else:
 #                 break
-        
+
 #         indx = indmy
 #         outcome = self._rational[indx][-1]
 
@@ -2348,10 +2339,10 @@ class Shochan(SAONegotiator):
 #         # If there is no offer, there is nothing to accept
 #         if offer is None:
 #             return False
-        
+
 #         # print("offer")
 #         # print(offer)
-        
+
 #         if self._best is None:
 #             self._best = offer
 #         else:
@@ -2365,7 +2356,7 @@ class Shochan(SAONegotiator):
 
 #         self.opponent_times.append(state.relative_time)
 #         self.opponent_utilities.append(self.opponent_ufun(offer))
-                    
+
 #         # Find the current aspiration level
 #         myasp = aspiration_function(
 #             state.relative_time / self.lasttime, 1.0, self.ufun.reserved_value, self.e
@@ -2381,7 +2372,7 @@ class Shochan(SAONegotiator):
 #             myasp = aspiration_function(pat / self.lasttime, 1.0, self.ufun.reserved_value, self.e)
 #             ratio = (myasp - self.ufun.reserved_value) / ((self.lasttime - pat)*(self.lasttime - pat))
 #             xd = (state.relative_time / self.lasttime) - pat
-#             y = myasp - (ratio*xd*xd) 
+#             y = myasp - (ratio*xd*xd)
 #             border = max(border,y)
 
 #             # asp = aspiration_function(state.relative_time, 1.0, rv, self.e)
@@ -2400,7 +2391,7 @@ class Shochan(SAONegotiator):
 #                 tmp = popt[1]
 #                 # print(state.relative_time)
 #                 # print(popt)
-#                 indop = len(self._opprational) - 1 
+#                 indop = len(self._opprational) - 1
 #                 while(indop!=0):
 #                     nextidx = max(indop, 0)
 #                     if(self._opprational[nextidx][0] >= tmp):
@@ -2445,72 +2436,58 @@ class Shochan(SAONegotiator):
 #         return (float(self.ufun(offer)) >= myasp)
 
 
+# def update_reserved_value(self, state: SAOState):
+#     # Learns the reserved value of the partner
+#     assert self.opponent_ufun is not None
+#     # extract the current offer from the state
+#     offer = state.current_offer
+#     if offer is None:
+#         return
+#     # save to the list of utilities received from the opponent and their times
+#     self.opponent_utilities.append(float(self.opponent_ufun(offer)))
+#     self.opponent_times.append(state.relative_time)
 
+#     # If we do not have enough data, just assume that the opponent
+#     # reserved value is zero
+#     n_unique = len(set(self.opponent_utilities))
+#     if n_unique < self.min_unique_utilities:
+#         self._past_oppnent_rv = 0.0
+#         self.opponent_ufun.reserved_value = 0.0
+#         return
+#     # Use curve fitting to estimate the opponent reserved value
+#     # We assume the following:
+#     # - The opponent is using a concession strategy with an exponent between 0.2, 5.0
+#     # - The opponent never offers outcomes lower than their reserved value which means
+#     #   that their rv must be no higher than the worst outcome they offered for themselves.
+#     bounds = ((0.2, 0.0), (5.0, min(self.opponent_utilities)))
+#     err = ""
+#     try:
+#         optimal_vals, _ = curve_fit(
+#             lambda x, e, rv: aspiration_function(
+#                 x, self.opponent_utilities[0], rv, e
+#             ),
+#             self.opponent_times,
+#             self.opponent_utilities,
+#             bounds=bounds,
+#         )
+#         self._past_oppnent_rv = self.opponent_ufun.reserved_value
+#         self.opponent_ufun.reserved_value = optimal_vals[1]
+#     except Exception as e:
+#         err, optimal_vals = f"{str(e)}", [None, None]
 
-
-
-
-
-
-
-
-
-
-
-
-
-    # def update_reserved_value(self, state: SAOState):
-    #     # Learns the reserved value of the partner
-    #     assert self.opponent_ufun is not None
-    #     # extract the current offer from the state
-    #     offer = state.current_offer
-    #     if offer is None:
-    #         return
-    #     # save to the list of utilities received from the opponent and their times
-    #     self.opponent_utilities.append(float(self.opponent_ufun(offer)))
-    #     self.opponent_times.append(state.relative_time)
-
-    #     # If we do not have enough data, just assume that the opponent
-    #     # reserved value is zero
-    #     n_unique = len(set(self.opponent_utilities))
-    #     if n_unique < self.min_unique_utilities:
-    #         self._past_oppnent_rv = 0.0
-    #         self.opponent_ufun.reserved_value = 0.0
-    #         return
-    #     # Use curve fitting to estimate the opponent reserved value
-    #     # We assume the following:
-    #     # - The opponent is using a concession strategy with an exponent between 0.2, 5.0
-    #     # - The opponent never offers outcomes lower than their reserved value which means
-    #     #   that their rv must be no higher than the worst outcome they offered for themselves.
-    #     bounds = ((0.2, 0.0), (5.0, min(self.opponent_utilities)))
-    #     err = ""
-    #     try:
-    #         optimal_vals, _ = curve_fit(
-    #             lambda x, e, rv: aspiration_function(
-    #                 x, self.opponent_utilities[0], rv, e
-    #             ),
-    #             self.opponent_times,
-    #             self.opponent_utilities,
-    #             bounds=bounds,
-    #         )
-    #         self._past_oppnent_rv = self.opponent_ufun.reserved_value
-    #         self.opponent_ufun.reserved_value = optimal_vals[1]
-    #     except Exception as e:
-    #         err, optimal_vals = f"{str(e)}", [None, None]
-
-    #     # log my estimate
-    #     if self._enable_logging:
-    #         self.nmi.log_info(
-    #             self.id,
-    #             dict(
-    #                 estimated_rv=self.opponent_ufun.reserved_value,
-    #                 n_unique=n_unique,
-    #                 opponent_utility=self.opponent_utilities[-1],
-    #                 estimated_exponent=optimal_vals[0],
-    #                 estimated_max=self.opponent_utilities[0],
-    #                 error=err,
-    #             ),
-    #         )
+#     # log my estimate
+#     if self._enable_logging:
+#         self.nmi.log_info(
+#             self.id,
+#             dict(
+#                 estimated_rv=self.opponent_ufun.reserved_value,
+#                 n_unique=n_unique,
+#                 opponent_utility=self.opponent_utilities[-1],
+#                 estimated_exponent=optimal_vals[0],
+#                 estimated_max=self.opponent_utilities[0],
+#                 error=err,
+#             ),
+#         )
 
 # 2代目
 # class Shochan(SAONegotiator):
@@ -2579,7 +2556,7 @@ class Shochan(SAONegotiator):
 #         self.nidx = 0
 #         self.opponent_ufun.reserved_value = 0.0
 #         # self.most
-        
+
 
 #     def __call__(self, state: SAOState) -> SAOResponse:
 #         assert self.ufun and self.opponent_ufun
@@ -2594,7 +2571,7 @@ class Shochan(SAONegotiator):
 #         else:
 #             self.preoffer.append((self.ufun(state.current_offer),self.opponent_ufun(state.current_offer)))
 #         # The offering strategy
-            
+
 #         # nash
 #         ufuns = (self.ufun, self.opponent_ufun)
 #         # list all outcomes
@@ -2617,13 +2594,13 @@ class Shochan(SAONegotiator):
 #         # self._min_acceptable = 0
 #         # Set the set of outcomes to offer from
 
-      
+
 #         # self._outcomes = [
 #         #     w
 #         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
 #         #     if u >= self._min_acceptable
-#         # ]        
-    
+#         # ]
+
 #         # We only update our estimate of the rational list of outcomes if it is not set or
 #         # there is a change in estimated reserved value
 #         if (
@@ -2670,7 +2647,7 @@ class Shochan(SAONegotiator):
 #             #     if(tmp[i][0] not in a):
 #             #         a.add(tmp[i][0])
 #             #         if(tmp[i][0] >= self.ufun.reserved_value):
-#             #             ori_outcomes.append(tmp[i][-1]) 
+#             #             ori_outcomes.append(tmp[i][-1])
 
 #             # for i in range(len(tmp2)):
 #             #     # print(i)
@@ -2678,8 +2655,8 @@ class Shochan(SAONegotiator):
 #             #     if(tmp2[i][0] not in b):
 #             #         b.add(tmp2[i][0])
 #             #         if(tmp2[i][0] >= self.ufun.reserved_value):
-#             #             ori_outcomes2.append(tmp2[i][-1]) 
-#             #             # print([tmp[i][0],tmp[i][1]])    
+#             #             ori_outcomes2.append(tmp2[i][-1])
+#             #             # print([tmp[i][0],tmp[i][1]])
 #             #             # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 #             # c = set(ori_outcomes)
 #             # for i in ori_outcomes2:
@@ -2695,14 +2672,13 @@ class Shochan(SAONegotiator):
 #                         # print(i[0] + i[1])
 #                         min_nash = i[0] + i[1]
 #                 # print(min_nash)
-            
 
 
 #             self._outcomes = [
 #                 w
 #                 for u, w in zip(my_frontier_utils, frontier_outcomes)
 #                 if u >= self.ufun.reserved_value
-#             ]     
+#             ]
 
 #             if(len(my_frontier_utils)!=0):
 #                 for _ in outcomes:
@@ -2754,7 +2730,7 @@ class Shochan(SAONegotiator):
 #         # min_indx = max(0, min(max_rational, int(asp * max_rational)))
 
 #         min_indx = self.nidx
-        
+
 #         # find current stochasticity which goes down from the set level to zero linearly
 #         # s = aspiration_function(state.relative_time, self.stochasticity, 0.0, 1.0)
 #         # find the index of the maximum utility we require based on stochasticity (going down over time)
@@ -2774,7 +2750,7 @@ class Shochan(SAONegotiator):
 #             myasp = aspiration_function(pat, 1.0, self.ufun.reserved_value, self.e)
 #             ratio = (myasp - self.ufun.reserved_value) / ((1.0 - pat)*(1.0 - pat))
 #             xd = state.relative_time - pat
-#             y = myasp - (ratio*xd*xd) 
+#             y = myasp - (ratio*xd*xd)
 #             border = max(border,y)
 
 #             # asp = aspiration_function(state.relative_time, 1.0, rv, self.e)
@@ -2793,7 +2769,7 @@ class Shochan(SAONegotiator):
 #                 tmp = popt[1]
 #                 # print(state.relative_time)
 #                 # print(popt)
-#                 indop = len(self._opprational) - 1 
+#                 indop = len(self._opprational) - 1
 #                 while(self.nidx!=0):
 #                     nextidx = max(indop, 0)
 #                     if(self._opprational[nextidx][0] >= tmp):
@@ -2826,7 +2802,7 @@ class Shochan(SAONegotiator):
 #                 indmy = nextidx
 #             else:
 #                 break
-        
+
 #         indx = indmy
 #         outcome = self._rational[indx][-1]
 
@@ -2841,10 +2817,10 @@ class Shochan(SAONegotiator):
 #         # If there is no offer, there is nothing to accept
 #         if offer is None:
 #             return False
-        
+
 #         # print("offer")
 #         # print(offer)
-        
+
 #         if self._best is None:
 #             self._best = offer
 #         else:
@@ -2858,7 +2834,7 @@ class Shochan(SAONegotiator):
 
 #         self.opponent_times.append(state.relative_time)
 #         self.opponent_utilities.append(self.opponent_ufun(offer))
-                    
+
 #         # Find the current aspiration level
 #         myasp = aspiration_function(
 #             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -3001,7 +2977,7 @@ class Shochan(SAONegotiator):
 #         self.nidx = 0
 #         self.opponent_ufun.reserved_value = 25.0
 #         # self.most
-        
+
 
 #     def __call__(self, state: SAOState) -> SAOResponse:
 #         assert self.ufun and self.opponent_ufun
@@ -3013,7 +2989,7 @@ class Shochan(SAONegotiator):
 #             # print(self.opponent_utilities)
 #             # print(self.opponent_ufun(state.current_offer))
 #             # print(self.opponent_ufun.reserved_value)
-#             # xdata = 
+#             # xdata =
 #             # print(self.opponent_)
 #             popt, pcov = curve_fit(aspiration_function, self.opponent_times, self.opponent_utilities,bounds=(0, [1.0, 1.0, 100.0]))
 #             # print(state.current_proposer_agent)
@@ -3039,13 +3015,13 @@ class Shochan(SAONegotiator):
 #             # plt.xlabel('x')
 #             # plt.ylabel('y')
 #             # plt.legend()
-#             # plt.savefig("/root/negmas/")  
+#             # plt.savefig("/root/negmas/")
 #             # plt.show()
 #             return SAOResponse(ResponseType.ACCEPT_OFFER, state.current_offer)
 #         else:
 #             self.preoffer.append((self.ufun(state.current_offer),self.opponent_ufun(state.current_offer)))
 #         # The offering strategy
-            
+
 #         # nash
 #         ufuns = (self.ufun, self.opponent_ufun)
 #         # list all outcomes
@@ -3072,13 +3048,13 @@ class Shochan(SAONegotiator):
 #         # self._min_acceptable = 0
 #         # Set the set of outcomes to offer from
 
-      
+
 #         # self._outcomes = [
 #         #     w
 #         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
 #         #     if u >= self._min_acceptable
-#         # ]        
-    
+#         # ]
+
 #         # We only update our estimate of the rational list of outcomes if it is not set or
 #         # there is a change in estimated reserved value
 #         if (
@@ -3124,7 +3100,7 @@ class Shochan(SAONegotiator):
 #                 if(tmp[i][0] not in a):
 #                     a.add(tmp[i][0])
 #                     if(tmp[i][0] >= self.ufun.reserved_value):
-#                         ori_outcomes.append(tmp[i][-1]) 
+#                         ori_outcomes.append(tmp[i][-1])
 
 #             for i in range(len(tmp2)):
 #                 # print(i)
@@ -3132,8 +3108,8 @@ class Shochan(SAONegotiator):
 #                 if(tmp2[i][0] not in b):
 #                     b.add(tmp2[i][0])
 #                     if(tmp2[i][0] >= self.ufun.reserved_value):
-#                         ori_outcomes2.append(tmp2[i][-1]) 
-#                         # print([tmp[i][0],tmp[i][1]])    
+#                         ori_outcomes2.append(tmp2[i][-1])
+#                         # print([tmp[i][0],tmp[i][1]])
 #                         # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 #             c = set(ori_outcomes)
 #             for i in ori_outcomes2:
@@ -3149,7 +3125,7 @@ class Shochan(SAONegotiator):
 #             #         print(i[0] + i[1])
 #             #         min_nash = i
 #                 # print(min_nash)
-            
+
 
 #             self._outcomes = [
 #                 w
@@ -3173,7 +3149,7 @@ class Shochan(SAONegotiator):
 #             #         > 0
 #             #     ],
 #             # )
-   
+
 #             self._rational = sorted(
 #                 [
 #                     (my_util, opp_util, _)
@@ -3227,7 +3203,7 @@ class Shochan(SAONegotiator):
 #         #         break
 
 #         min_indx = self.nidx
-        
+
 #         # find current stochasticity which goes down from the set level to zero linearly
 #         s = aspiration_function(state.relative_time, self.stochasticity, 0.0, 1.0)
 #         # find the index of the maximum utility we require based on stochasticity (going down over time)
@@ -3237,7 +3213,7 @@ class Shochan(SAONegotiator):
 #         # indx = random.randint(min_indx, max_indx) if min_indx != max_indx else min_indx
 
 #         indx = self.nidx
-        
+
 #         outcome = self._rational[indx][-1]
 #         # print("outcome")
 #         # print(outcome)
@@ -3258,10 +3234,10 @@ class Shochan(SAONegotiator):
 #             return False
 #         self.opponent_times.append(state.relative_time)
 #         self.opponent_utilities.append(self.opponent_ufun(offer))
-        
+
 #         # print("offer")
 #         # print(offer)
-        
+
 #         if self._best is None:
 #             self._best = offer
 #         else:
@@ -3272,7 +3248,7 @@ class Shochan(SAONegotiator):
 #             elif(self.ufun(offer) == self.ufun(self._best)):
 #                 if(self.opponent_ufun(offer) < self.opponent_ufun(self._best)):
 #                     self._best = offer
-                    
+
 #         # Find the current aspiration level
 #         asp = aspiration_function(
 #             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -3334,9 +3310,6 @@ class Shochan(SAONegotiator):
 #                     error=err,
 #                 ),
 #             )
-
-
-
 
 
 class Shochan_base75(SAONegotiator):
@@ -3405,7 +3378,6 @@ class Shochan_base75(SAONegotiator):
         self.nidx = 0
         self.opponent_ufun.reserved_value = 0.0
         # self.most
-        
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -3418,9 +3390,14 @@ class Shochan_base75(SAONegotiator):
             # print(self.opponent_ufun.reserved_value)
             return SAOResponse(ResponseType.ACCEPT_OFFER, state.current_offer)
         else:
-            self.preoffer.append((self.ufun(state.current_offer),self.opponent_ufun(state.current_offer)))
+            self.preoffer.append(
+                (
+                    self.ufun(state.current_offer),
+                    self.opponent_ufun(state.current_offer),
+                )
+            )
         # The offering strategy
-            
+
         # nash
         ufuns = (self.ufun, self.opponent_ufun)
         # list all outcomes
@@ -3441,13 +3418,12 @@ class Shochan_base75(SAONegotiator):
         # self._min_acceptable = 0
         # Set the set of outcomes to offer from
 
-      
         # self._outcomes = [
         #     w
         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
         #     if u >= self._min_acceptable
-        # ]        
-    
+        # ]
+
         # We only update our estimate of the rational list of outcomes if it is not set or
         # there is a change in estimated reserved value
         if (
@@ -3474,7 +3450,8 @@ class Shochan_base75(SAONegotiator):
                 [
                     (float(self.ufun(_)), float(self.opponent_ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
 
             ori_outcomes2 = []
@@ -3482,7 +3459,8 @@ class Shochan_base75(SAONegotiator):
                 [
                     (float(self.opponent_ufun(_)), float(self.ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
             # print(tmp[20])
             # i = 0
@@ -3490,19 +3468,19 @@ class Shochan_base75(SAONegotiator):
             for i in range(len(tmp)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp[i][0] not in a):
+                if tmp[i][0] not in a:
                     a.add(tmp[i][0])
-                    if(tmp[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes.append(tmp[i][-1]) 
+                    if tmp[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes.append(tmp[i][-1])
 
             for i in range(len(tmp2)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp2[i][0] not in b):
+                if tmp2[i][0] not in b:
                     b.add(tmp2[i][0])
-                    if(tmp2[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes2.append(tmp2[i][-1]) 
-                        # print([tmp[i][0],tmp[i][1]])    
+                    if tmp2[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes2.append(tmp2[i][-1])
+                        # print([tmp[i][0],tmp[i][1]])
                         # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             c = set(ori_outcomes)
             for i in ori_outcomes2:
@@ -3515,8 +3493,7 @@ class Shochan_base75(SAONegotiator):
                 w
                 for u, w in zip(my_frontier_utils, frontier_outcomes)
                 if u >= self.ufun.reserved_value
-            ]     
-
+            ]
 
             # self._rational = sorted(
             #     [
@@ -3532,11 +3509,10 @@ class Shochan_base75(SAONegotiator):
                     (my_util, opp_util, _)
                     for _ in self._outcomes
                     if (my_util := float(self.ufun(_))) > self.ufun.reserved_value
-                    and (opp_util := float(self.opponent_ufun(_)))
-                    > 0
+                    and (opp_util := float(self.opponent_ufun(_))) > 0
                 ],
             )
-            self.nidx = len(self._rational)-1
+            self.nidx = len(self._rational) - 1
             # print(self.nidx)
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
@@ -3549,33 +3525,41 @@ class Shochan_base75(SAONegotiator):
         max_rational = n_rational - 1
         min_indx = max(0, min(max_rational, int(asp * max_rational)))
 
-        asp = aspiration_function(state.relative_time, 1.0, self.ufun.reserved_value, self.e)
-        while(self.nidx!=0):
-            nextidx = max(self.nidx-1 , 0)
-            if(self._rational[nextidx][0] > asp):
+        asp = aspiration_function(
+            state.relative_time, 1.0, self.ufun.reserved_value, self.e
+        )
+        while self.nidx != 0:
+            nextidx = max(self.nidx - 1, 0)
+            if self._rational[nextidx][0] > asp:
                 self.nidx = nextidx
             else:
                 break
 
         min_indx = self.nidx
-        
+
         # find current stochasticity which goes down from the set level to zero linearly
         s = aspiration_function(state.relative_time, self.stochasticity, 0.0, 1.0)
         # find the index of the maximum utility we require based on stochasticity (going down over time)
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
         # offer an outcome in the selected range
         # indx = random.randint(min_indx, max_indx) if min_indx != max_indx else min_indx
 
         indx = self.nidx
-        
+
         outcome = self._rational[indx][-1]
         # print("outcome")
         # print(outcome)
-        if(self.ufun(self._best) > self.ufun(outcome) and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            self.ufun(self._best) > self.ufun(outcome)
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
 
-        if(state.relative_time > 0.98 and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            state.relative_time > 0.98
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
         return SAOResponse(ResponseType.REJECT_OFFER, outcome)
 
@@ -3587,21 +3571,21 @@ class Shochan_base75(SAONegotiator):
         # If there is no offer, there is nothing to accept
         if offer is None:
             return False
-        
+
         # print("offer")
         # print(offer)
-        
+
         if self._best is None:
             self._best = offer
         else:
-            if(self.ufun(offer) > self.ufun(self._best)):
+            if self.ufun(offer) > self.ufun(self._best):
                 # print(self.ufun(offer))
                 # print(self.ufun(self._best))
                 self._best = offer
-            elif(self.ufun(offer) == self.ufun(self._best)):
-                if(self.opponent_ufun(offer) < self.opponent_ufun(self._best)):
+            elif self.ufun(offer) == self.ufun(self._best):
+                if self.opponent_ufun(offer) < self.opponent_ufun(self._best):
                     self._best = offer
-                    
+
         # Find the current aspiration level
         asp = aspiration_function(
             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -3663,6 +3647,7 @@ class Shochan_base75(SAONegotiator):
                     error=err,
                 ),
             )
+
 
 class Shochan_base50(SAONegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
@@ -3730,7 +3715,6 @@ class Shochan_base50(SAONegotiator):
         self.nidx = 0
         self.opponent_ufun.reserved_value = 0.0
         # self.most
-        
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -3743,9 +3727,14 @@ class Shochan_base50(SAONegotiator):
             # print(self.opponent_ufun.reserved_value)
             return SAOResponse(ResponseType.ACCEPT_OFFER, state.current_offer)
         else:
-            self.preoffer.append((self.ufun(state.current_offer),self.opponent_ufun(state.current_offer)))
+            self.preoffer.append(
+                (
+                    self.ufun(state.current_offer),
+                    self.opponent_ufun(state.current_offer),
+                )
+            )
         # The offering strategy
-            
+
         # nash
         ufuns = (self.ufun, self.opponent_ufun)
         # list all outcomes
@@ -3766,13 +3755,12 @@ class Shochan_base50(SAONegotiator):
         # self._min_acceptable = 0
         # Set the set of outcomes to offer from
 
-      
         # self._outcomes = [
         #     w
         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
         #     if u >= self._min_acceptable
-        # ]        
-    
+        # ]
+
         # We only update our estimate of the rational list of outcomes if it is not set or
         # there is a change in estimated reserved value
         if (
@@ -3799,7 +3787,8 @@ class Shochan_base50(SAONegotiator):
                 [
                     (float(self.ufun(_)), float(self.opponent_ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
 
             ori_outcomes2 = []
@@ -3807,7 +3796,8 @@ class Shochan_base50(SAONegotiator):
                 [
                     (float(self.opponent_ufun(_)), float(self.ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
             # print(tmp[20])
             # i = 0
@@ -3815,19 +3805,19 @@ class Shochan_base50(SAONegotiator):
             for i in range(len(tmp)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp[i][0] not in a):
+                if tmp[i][0] not in a:
                     a.add(tmp[i][0])
-                    if(tmp[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes.append(tmp[i][-1]) 
+                    if tmp[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes.append(tmp[i][-1])
 
             for i in range(len(tmp2)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp2[i][0] not in b):
+                if tmp2[i][0] not in b:
                     b.add(tmp2[i][0])
-                    if(tmp2[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes2.append(tmp2[i][-1]) 
-                        # print([tmp[i][0],tmp[i][1]])    
+                    if tmp2[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes2.append(tmp2[i][-1])
+                        # print([tmp[i][0],tmp[i][1]])
                         # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             c = set(ori_outcomes)
             for i in ori_outcomes2:
@@ -3840,8 +3830,7 @@ class Shochan_base50(SAONegotiator):
                 w
                 for u, w in zip(my_frontier_utils, frontier_outcomes)
                 if u >= self.ufun.reserved_value
-            ]     
-
+            ]
 
             # self._rational = sorted(
             #     [
@@ -3857,11 +3846,10 @@ class Shochan_base50(SAONegotiator):
                     (my_util, opp_util, _)
                     for _ in self._outcomes
                     if (my_util := float(self.ufun(_))) > self.ufun.reserved_value
-                    and (opp_util := float(self.opponent_ufun(_)))
-                    > 0
+                    and (opp_util := float(self.opponent_ufun(_))) > 0
                 ],
             )
-            self.nidx = len(self._rational)-1
+            self.nidx = len(self._rational) - 1
             # print(self.nidx)
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
@@ -3874,33 +3862,41 @@ class Shochan_base50(SAONegotiator):
         max_rational = n_rational - 1
         min_indx = max(0, min(max_rational, int(asp * max_rational)))
 
-        asp = aspiration_function(state.relative_time, 1.0, self.ufun.reserved_value, self.e)
-        while(self.nidx!=0):
-            nextidx = max(self.nidx-1 , 0)
-            if(self._rational[nextidx][0] > asp):
+        asp = aspiration_function(
+            state.relative_time, 1.0, self.ufun.reserved_value, self.e
+        )
+        while self.nidx != 0:
+            nextidx = max(self.nidx - 1, 0)
+            if self._rational[nextidx][0] > asp:
                 self.nidx = nextidx
             else:
                 break
 
         min_indx = self.nidx
-        
+
         # find current stochasticity which goes down from the set level to zero linearly
         s = aspiration_function(state.relative_time, self.stochasticity, 0.0, 1.0)
         # find the index of the maximum utility we require based on stochasticity (going down over time)
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
         # offer an outcome in the selected range
         # indx = random.randint(min_indx, max_indx) if min_indx != max_indx else min_indx
 
         indx = self.nidx
-        
+
         outcome = self._rational[indx][-1]
         # print("outcome")
         # print(outcome)
-        if(self.ufun(self._best) > self.ufun(outcome) and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            self.ufun(self._best) > self.ufun(outcome)
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
 
-        if(state.relative_time > 0.98 and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            state.relative_time > 0.98
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
         return SAOResponse(ResponseType.REJECT_OFFER, outcome)
 
@@ -3912,21 +3908,21 @@ class Shochan_base50(SAONegotiator):
         # If there is no offer, there is nothing to accept
         if offer is None:
             return False
-        
+
         # print("offer")
         # print(offer)
-        
+
         if self._best is None:
             self._best = offer
         else:
-            if(self.ufun(offer) > self.ufun(self._best)):
+            if self.ufun(offer) > self.ufun(self._best):
                 # print(self.ufun(offer))
                 # print(self.ufun(self._best))
                 self._best = offer
-            elif(self.ufun(offer) == self.ufun(self._best)):
-                if(self.opponent_ufun(offer) < self.opponent_ufun(self._best)):
+            elif self.ufun(offer) == self.ufun(self._best):
+                if self.opponent_ufun(offer) < self.opponent_ufun(self._best):
                     self._best = offer
-                    
+
         # Find the current aspiration level
         asp = aspiration_function(
             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -3988,6 +3984,7 @@ class Shochan_base50(SAONegotiator):
                     error=err,
                 ),
             )
+
 
 class Shochan_base100(SAONegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
@@ -4055,7 +4052,6 @@ class Shochan_base100(SAONegotiator):
         self.nidx = 0
         self.opponent_ufun.reserved_value = 0.0
         # self.most
-        
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -4068,9 +4064,14 @@ class Shochan_base100(SAONegotiator):
             # print(self.opponent_ufun.reserved_value)
             return SAOResponse(ResponseType.ACCEPT_OFFER, state.current_offer)
         else:
-            self.preoffer.append((self.ufun(state.current_offer),self.opponent_ufun(state.current_offer)))
+            self.preoffer.append(
+                (
+                    self.ufun(state.current_offer),
+                    self.opponent_ufun(state.current_offer),
+                )
+            )
         # The offering strategy
-            
+
         # nash
         ufuns = (self.ufun, self.opponent_ufun)
         # list all outcomes
@@ -4091,13 +4092,12 @@ class Shochan_base100(SAONegotiator):
         # self._min_acceptable = 0
         # Set the set of outcomes to offer from
 
-      
         # self._outcomes = [
         #     w
         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
         #     if u >= self._min_acceptable
-        # ]        
-    
+        # ]
+
         # We only update our estimate of the rational list of outcomes if it is not set or
         # there is a change in estimated reserved value
         if (
@@ -4124,7 +4124,8 @@ class Shochan_base100(SAONegotiator):
                 [
                     (float(self.ufun(_)), float(self.opponent_ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
 
             ori_outcomes2 = []
@@ -4132,7 +4133,8 @@ class Shochan_base100(SAONegotiator):
                 [
                     (float(self.opponent_ufun(_)), float(self.ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
             # print(tmp[20])
             # i = 0
@@ -4140,19 +4142,19 @@ class Shochan_base100(SAONegotiator):
             for i in range(len(tmp)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp[i][0] not in a):
+                if tmp[i][0] not in a:
                     a.add(tmp[i][0])
-                    if(tmp[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes.append(tmp[i][-1]) 
+                    if tmp[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes.append(tmp[i][-1])
 
             for i in range(len(tmp2)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp2[i][0] not in b):
+                if tmp2[i][0] not in b:
                     b.add(tmp2[i][0])
-                    if(tmp2[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes2.append(tmp2[i][-1]) 
-                        # print([tmp[i][0],tmp[i][1]])    
+                    if tmp2[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes2.append(tmp2[i][-1])
+                        # print([tmp[i][0],tmp[i][1]])
                         # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             c = set(ori_outcomes)
             for i in ori_outcomes2:
@@ -4165,8 +4167,7 @@ class Shochan_base100(SAONegotiator):
                 w
                 for u, w in zip(my_frontier_utils, frontier_outcomes)
                 if u >= self.ufun.reserved_value
-            ]     
-
+            ]
 
             # self._rational = sorted(
             #     [
@@ -4182,11 +4183,10 @@ class Shochan_base100(SAONegotiator):
                     (my_util, opp_util, _)
                     for _ in self._outcomes
                     if (my_util := float(self.ufun(_))) > self.ufun.reserved_value
-                    and (opp_util := float(self.opponent_ufun(_)))
-                    > 0
+                    and (opp_util := float(self.opponent_ufun(_))) > 0
                 ],
             )
-            self.nidx = len(self._rational)-1
+            self.nidx = len(self._rational) - 1
             # print(self.nidx)
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
@@ -4199,33 +4199,41 @@ class Shochan_base100(SAONegotiator):
         max_rational = n_rational - 1
         min_indx = max(0, min(max_rational, int(asp * max_rational)))
 
-        asp = aspiration_function(state.relative_time, 1.0, self.ufun.reserved_value, self.e)
-        while(self.nidx!=0):
-            nextidx = max(self.nidx-1 , 0)
-            if(self._rational[nextidx][0] > asp):
+        asp = aspiration_function(
+            state.relative_time, 1.0, self.ufun.reserved_value, self.e
+        )
+        while self.nidx != 0:
+            nextidx = max(self.nidx - 1, 0)
+            if self._rational[nextidx][0] > asp:
                 self.nidx = nextidx
             else:
                 break
 
         min_indx = self.nidx
-        
+
         # find current stochasticity which goes down from the set level to zero linearly
         s = aspiration_function(state.relative_time, self.stochasticity, 0.0, 1.0)
         # find the index of the maximum utility we require based on stochasticity (going down over time)
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
         # offer an outcome in the selected range
         # indx = random.randint(min_indx, max_indx) if min_indx != max_indx else min_indx
 
         indx = self.nidx
-        
+
         outcome = self._rational[indx][-1]
         # print("outcome")
         # print(outcome)
-        if(self.ufun(self._best) > self.ufun(outcome) and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            self.ufun(self._best) > self.ufun(outcome)
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
 
-        if(state.relative_time > 0.98 and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            state.relative_time > 0.98
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
         return SAOResponse(ResponseType.REJECT_OFFER, outcome)
 
@@ -4237,21 +4245,21 @@ class Shochan_base100(SAONegotiator):
         # If there is no offer, there is nothing to accept
         if offer is None:
             return False
-        
+
         # print("offer")
         # print(offer)
-        
+
         if self._best is None:
             self._best = offer
         else:
-            if(self.ufun(offer) > self.ufun(self._best)):
+            if self.ufun(offer) > self.ufun(self._best):
                 # print(self.ufun(offer))
                 # print(self.ufun(self._best))
                 self._best = offer
-            elif(self.ufun(offer) == self.ufun(self._best)):
-                if(self.opponent_ufun(offer) < self.opponent_ufun(self._best)):
+            elif self.ufun(offer) == self.ufun(self._best):
+                if self.opponent_ufun(offer) < self.opponent_ufun(self._best):
                     self._best = offer
-                    
+
         # Find the current aspiration level
         asp = aspiration_function(
             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -4313,6 +4321,7 @@ class Shochan_base100(SAONegotiator):
                     error=err,
                 ),
             )
+
 
 class Shochan_base125(SAONegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
@@ -4380,7 +4389,6 @@ class Shochan_base125(SAONegotiator):
         self.nidx = 0
         self.opponent_ufun.reserved_value = 0.0
         # self.most
-        
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -4393,9 +4401,14 @@ class Shochan_base125(SAONegotiator):
             # print(self.opponent_ufun.reserved_value)
             return SAOResponse(ResponseType.ACCEPT_OFFER, state.current_offer)
         else:
-            self.preoffer.append((self.ufun(state.current_offer),self.opponent_ufun(state.current_offer)))
+            self.preoffer.append(
+                (
+                    self.ufun(state.current_offer),
+                    self.opponent_ufun(state.current_offer),
+                )
+            )
         # The offering strategy
-            
+
         # nash
         ufuns = (self.ufun, self.opponent_ufun)
         # list all outcomes
@@ -4416,13 +4429,12 @@ class Shochan_base125(SAONegotiator):
         # self._min_acceptable = 0
         # Set the set of outcomes to offer from
 
-      
         # self._outcomes = [
         #     w
         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
         #     if u >= self._min_acceptable
-        # ]        
-    
+        # ]
+
         # We only update our estimate of the rational list of outcomes if it is not set or
         # there is a change in estimated reserved value
         if (
@@ -4449,7 +4461,8 @@ class Shochan_base125(SAONegotiator):
                 [
                     (float(self.ufun(_)), float(self.opponent_ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
 
             ori_outcomes2 = []
@@ -4457,7 +4470,8 @@ class Shochan_base125(SAONegotiator):
                 [
                     (float(self.opponent_ufun(_)), float(self.ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
             # print(tmp[20])
             # i = 0
@@ -4465,19 +4479,19 @@ class Shochan_base125(SAONegotiator):
             for i in range(len(tmp)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp[i][0] not in a):
+                if tmp[i][0] not in a:
                     a.add(tmp[i][0])
-                    if(tmp[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes.append(tmp[i][-1]) 
+                    if tmp[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes.append(tmp[i][-1])
 
             for i in range(len(tmp2)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp2[i][0] not in b):
+                if tmp2[i][0] not in b:
                     b.add(tmp2[i][0])
-                    if(tmp2[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes2.append(tmp2[i][-1]) 
-                        # print([tmp[i][0],tmp[i][1]])    
+                    if tmp2[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes2.append(tmp2[i][-1])
+                        # print([tmp[i][0],tmp[i][1]])
                         # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             c = set(ori_outcomes)
             for i in ori_outcomes2:
@@ -4490,8 +4504,7 @@ class Shochan_base125(SAONegotiator):
                 w
                 for u, w in zip(my_frontier_utils, frontier_outcomes)
                 if u >= self.ufun.reserved_value
-            ]     
-
+            ]
 
             # self._rational = sorted(
             #     [
@@ -4507,11 +4520,10 @@ class Shochan_base125(SAONegotiator):
                     (my_util, opp_util, _)
                     for _ in self._outcomes
                     if (my_util := float(self.ufun(_))) > self.ufun.reserved_value
-                    and (opp_util := float(self.opponent_ufun(_)))
-                    > 0
+                    and (opp_util := float(self.opponent_ufun(_))) > 0
                 ],
             )
-            self.nidx = len(self._rational)-1
+            self.nidx = len(self._rational) - 1
             # print(self.nidx)
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
@@ -4524,33 +4536,41 @@ class Shochan_base125(SAONegotiator):
         max_rational = n_rational - 1
         min_indx = max(0, min(max_rational, int(asp * max_rational)))
 
-        asp = aspiration_function(state.relative_time, 1.0, self.ufun.reserved_value, self.e)
-        while(self.nidx!=0):
-            nextidx = max(self.nidx-1 , 0)
-            if(self._rational[nextidx][0] > asp):
+        asp = aspiration_function(
+            state.relative_time, 1.0, self.ufun.reserved_value, self.e
+        )
+        while self.nidx != 0:
+            nextidx = max(self.nidx - 1, 0)
+            if self._rational[nextidx][0] > asp:
                 self.nidx = nextidx
             else:
                 break
 
         min_indx = self.nidx
-        
+
         # find current stochasticity which goes down from the set level to zero linearly
         s = aspiration_function(state.relative_time, self.stochasticity, 0.0, 1.0)
         # find the index of the maximum utility we require based on stochasticity (going down over time)
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
         # offer an outcome in the selected range
         # indx = random.randint(min_indx, max_indx) if min_indx != max_indx else min_indx
 
         indx = self.nidx
-        
+
         outcome = self._rational[indx][-1]
         # print("outcome")
         # print(outcome)
-        if(self.ufun(self._best) > self.ufun(outcome) and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            self.ufun(self._best) > self.ufun(outcome)
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
 
-        if(state.relative_time > 0.98 and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            state.relative_time > 0.98
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
         return SAOResponse(ResponseType.REJECT_OFFER, outcome)
 
@@ -4562,21 +4582,21 @@ class Shochan_base125(SAONegotiator):
         # If there is no offer, there is nothing to accept
         if offer is None:
             return False
-        
+
         # print("offer")
         # print(offer)
-        
+
         if self._best is None:
             self._best = offer
         else:
-            if(self.ufun(offer) > self.ufun(self._best)):
+            if self.ufun(offer) > self.ufun(self._best):
                 # print(self.ufun(offer))
                 # print(self.ufun(self._best))
                 self._best = offer
-            elif(self.ufun(offer) == self.ufun(self._best)):
-                if(self.opponent_ufun(offer) < self.opponent_ufun(self._best)):
+            elif self.ufun(offer) == self.ufun(self._best):
+                if self.opponent_ufun(offer) < self.opponent_ufun(self._best):
                     self._best = offer
-                    
+
         # Find the current aspiration level
         asp = aspiration_function(
             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -4638,6 +4658,7 @@ class Shochan_base125(SAONegotiator):
                     error=err,
                 ),
             )
+
 
 class Shochan_base150(SAONegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
@@ -4705,7 +4726,6 @@ class Shochan_base150(SAONegotiator):
         self.nidx = 0
         self.opponent_ufun.reserved_value = 0.0
         # self.most
-        
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -4718,9 +4738,14 @@ class Shochan_base150(SAONegotiator):
             # print(self.opponent_ufun.reserved_value)
             return SAOResponse(ResponseType.ACCEPT_OFFER, state.current_offer)
         else:
-            self.preoffer.append((self.ufun(state.current_offer),self.opponent_ufun(state.current_offer)))
+            self.preoffer.append(
+                (
+                    self.ufun(state.current_offer),
+                    self.opponent_ufun(state.current_offer),
+                )
+            )
         # The offering strategy
-            
+
         # nash
         ufuns = (self.ufun, self.opponent_ufun)
         # list all outcomes
@@ -4741,13 +4766,12 @@ class Shochan_base150(SAONegotiator):
         # self._min_acceptable = 0
         # Set the set of outcomes to offer from
 
-      
         # self._outcomes = [
         #     w
         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
         #     if u >= self._min_acceptable
-        # ]        
-    
+        # ]
+
         # We only update our estimate of the rational list of outcomes if it is not set or
         # there is a change in estimated reserved value
         if (
@@ -4774,7 +4798,8 @@ class Shochan_base150(SAONegotiator):
                 [
                     (float(self.ufun(_)), float(self.opponent_ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
 
             ori_outcomes2 = []
@@ -4782,7 +4807,8 @@ class Shochan_base150(SAONegotiator):
                 [
                     (float(self.opponent_ufun(_)), float(self.ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
             # print(tmp[20])
             # i = 0
@@ -4790,19 +4816,19 @@ class Shochan_base150(SAONegotiator):
             for i in range(len(tmp)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp[i][0] not in a):
+                if tmp[i][0] not in a:
                     a.add(tmp[i][0])
-                    if(tmp[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes.append(tmp[i][-1]) 
+                    if tmp[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes.append(tmp[i][-1])
 
             for i in range(len(tmp2)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp2[i][0] not in b):
+                if tmp2[i][0] not in b:
                     b.add(tmp2[i][0])
-                    if(tmp2[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes2.append(tmp2[i][-1]) 
-                        # print([tmp[i][0],tmp[i][1]])    
+                    if tmp2[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes2.append(tmp2[i][-1])
+                        # print([tmp[i][0],tmp[i][1]])
                         # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             c = set(ori_outcomes)
             for i in ori_outcomes2:
@@ -4815,8 +4841,7 @@ class Shochan_base150(SAONegotiator):
                 w
                 for u, w in zip(my_frontier_utils, frontier_outcomes)
                 if u >= self.ufun.reserved_value
-            ]     
-
+            ]
 
             # self._rational = sorted(
             #     [
@@ -4832,11 +4857,10 @@ class Shochan_base150(SAONegotiator):
                     (my_util, opp_util, _)
                     for _ in self._outcomes
                     if (my_util := float(self.ufun(_))) > self.ufun.reserved_value
-                    and (opp_util := float(self.opponent_ufun(_)))
-                    > 0
+                    and (opp_util := float(self.opponent_ufun(_))) > 0
                 ],
             )
-            self.nidx = len(self._rational)-1
+            self.nidx = len(self._rational) - 1
             # print(self.nidx)
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
@@ -4849,33 +4873,41 @@ class Shochan_base150(SAONegotiator):
         max_rational = n_rational - 1
         min_indx = max(0, min(max_rational, int(asp * max_rational)))
 
-        asp = aspiration_function(state.relative_time, 1.0, self.ufun.reserved_value, self.e)
-        while(self.nidx!=0):
-            nextidx = max(self.nidx-1 , 0)
-            if(self._rational[nextidx][0] > asp):
+        asp = aspiration_function(
+            state.relative_time, 1.0, self.ufun.reserved_value, self.e
+        )
+        while self.nidx != 0:
+            nextidx = max(self.nidx - 1, 0)
+            if self._rational[nextidx][0] > asp:
                 self.nidx = nextidx
             else:
                 break
 
         min_indx = self.nidx
-        
+
         # find current stochasticity which goes down from the set level to zero linearly
         s = aspiration_function(state.relative_time, self.stochasticity, 0.0, 1.0)
         # find the index of the maximum utility we require based on stochasticity (going down over time)
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
         # offer an outcome in the selected range
         # indx = random.randint(min_indx, max_indx) if min_indx != max_indx else min_indx
 
         indx = self.nidx
-        
+
         outcome = self._rational[indx][-1]
         # print("outcome")
         # print(outcome)
-        if(self.ufun(self._best) > self.ufun(outcome) and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            self.ufun(self._best) > self.ufun(outcome)
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
 
-        if(state.relative_time > 0.98 and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            state.relative_time > 0.98
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
         return SAOResponse(ResponseType.REJECT_OFFER, outcome)
 
@@ -4887,21 +4919,21 @@ class Shochan_base150(SAONegotiator):
         # If there is no offer, there is nothing to accept
         if offer is None:
             return False
-        
+
         # print("offer")
         # print(offer)
-        
+
         if self._best is None:
             self._best = offer
         else:
-            if(self.ufun(offer) > self.ufun(self._best)):
+            if self.ufun(offer) > self.ufun(self._best):
                 # print(self.ufun(offer))
                 # print(self.ufun(self._best))
                 self._best = offer
-            elif(self.ufun(offer) == self.ufun(self._best)):
-                if(self.opponent_ufun(offer) < self.opponent_ufun(self._best)):
+            elif self.ufun(offer) == self.ufun(self._best):
+                if self.opponent_ufun(offer) < self.opponent_ufun(self._best):
                     self._best = offer
-                    
+
         # Find the current aspiration level
         asp = aspiration_function(
             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -4963,6 +4995,7 @@ class Shochan_base150(SAONegotiator):
                     error=err,
                 ),
             )
+
 
 class Shochan_base175(SAONegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
@@ -5030,7 +5063,6 @@ class Shochan_base175(SAONegotiator):
         self.nidx = 0
         self.opponent_ufun.reserved_value = 0.0
         # self.most
-        
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -5043,9 +5075,14 @@ class Shochan_base175(SAONegotiator):
             # print(self.opponent_ufun.reserved_value)
             return SAOResponse(ResponseType.ACCEPT_OFFER, state.current_offer)
         else:
-            self.preoffer.append((self.ufun(state.current_offer),self.opponent_ufun(state.current_offer)))
+            self.preoffer.append(
+                (
+                    self.ufun(state.current_offer),
+                    self.opponent_ufun(state.current_offer),
+                )
+            )
         # The offering strategy
-            
+
         # nash
         ufuns = (self.ufun, self.opponent_ufun)
         # list all outcomes
@@ -5066,13 +5103,12 @@ class Shochan_base175(SAONegotiator):
         # self._min_acceptable = 0
         # Set the set of outcomes to offer from
 
-      
         # self._outcomes = [
         #     w
         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
         #     if u >= self._min_acceptable
-        # ]        
-    
+        # ]
+
         # We only update our estimate of the rational list of outcomes if it is not set or
         # there is a change in estimated reserved value
         if (
@@ -5099,7 +5135,8 @@ class Shochan_base175(SAONegotiator):
                 [
                     (float(self.ufun(_)), float(self.opponent_ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
 
             ori_outcomes2 = []
@@ -5107,7 +5144,8 @@ class Shochan_base175(SAONegotiator):
                 [
                     (float(self.opponent_ufun(_)), float(self.ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
             # print(tmp[20])
             # i = 0
@@ -5115,19 +5153,19 @@ class Shochan_base175(SAONegotiator):
             for i in range(len(tmp)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp[i][0] not in a):
+                if tmp[i][0] not in a:
                     a.add(tmp[i][0])
-                    if(tmp[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes.append(tmp[i][-1]) 
+                    if tmp[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes.append(tmp[i][-1])
 
             for i in range(len(tmp2)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp2[i][0] not in b):
+                if tmp2[i][0] not in b:
                     b.add(tmp2[i][0])
-                    if(tmp2[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes2.append(tmp2[i][-1]) 
-                        # print([tmp[i][0],tmp[i][1]])    
+                    if tmp2[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes2.append(tmp2[i][-1])
+                        # print([tmp[i][0],tmp[i][1]])
                         # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             c = set(ori_outcomes)
             for i in ori_outcomes2:
@@ -5140,8 +5178,7 @@ class Shochan_base175(SAONegotiator):
                 w
                 for u, w in zip(my_frontier_utils, frontier_outcomes)
                 if u >= self.ufun.reserved_value
-            ]     
-
+            ]
 
             # self._rational = sorted(
             #     [
@@ -5157,11 +5194,10 @@ class Shochan_base175(SAONegotiator):
                     (my_util, opp_util, _)
                     for _ in self._outcomes
                     if (my_util := float(self.ufun(_))) > self.ufun.reserved_value
-                    and (opp_util := float(self.opponent_ufun(_)))
-                    > 0
+                    and (opp_util := float(self.opponent_ufun(_))) > 0
                 ],
             )
-            self.nidx = len(self._rational)-1
+            self.nidx = len(self._rational) - 1
             # print(self.nidx)
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
@@ -5174,33 +5210,41 @@ class Shochan_base175(SAONegotiator):
         max_rational = n_rational - 1
         min_indx = max(0, min(max_rational, int(asp * max_rational)))
 
-        asp = aspiration_function(state.relative_time, 1.0, self.ufun.reserved_value, self.e)
-        while(self.nidx!=0):
-            nextidx = max(self.nidx-1 , 0)
-            if(self._rational[nextidx][0] > asp):
+        asp = aspiration_function(
+            state.relative_time, 1.0, self.ufun.reserved_value, self.e
+        )
+        while self.nidx != 0:
+            nextidx = max(self.nidx - 1, 0)
+            if self._rational[nextidx][0] > asp:
                 self.nidx = nextidx
             else:
                 break
 
         min_indx = self.nidx
-        
+
         # find current stochasticity which goes down from the set level to zero linearly
         s = aspiration_function(state.relative_time, self.stochasticity, 0.0, 1.0)
         # find the index of the maximum utility we require based on stochasticity (going down over time)
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
         # offer an outcome in the selected range
         # indx = random.randint(min_indx, max_indx) if min_indx != max_indx else min_indx
 
         indx = self.nidx
-        
+
         outcome = self._rational[indx][-1]
         # print("outcome")
         # print(outcome)
-        if(self.ufun(self._best) > self.ufun(outcome) and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            self.ufun(self._best) > self.ufun(outcome)
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
 
-        if(state.relative_time > 0.98 and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            state.relative_time > 0.98
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
         return SAOResponse(ResponseType.REJECT_OFFER, outcome)
 
@@ -5212,21 +5256,21 @@ class Shochan_base175(SAONegotiator):
         # If there is no offer, there is nothing to accept
         if offer is None:
             return False
-        
+
         # print("offer")
         # print(offer)
-        
+
         if self._best is None:
             self._best = offer
         else:
-            if(self.ufun(offer) > self.ufun(self._best)):
+            if self.ufun(offer) > self.ufun(self._best):
                 # print(self.ufun(offer))
                 # print(self.ufun(self._best))
                 self._best = offer
-            elif(self.ufun(offer) == self.ufun(self._best)):
-                if(self.opponent_ufun(offer) < self.opponent_ufun(self._best)):
+            elif self.ufun(offer) == self.ufun(self._best):
+                if self.opponent_ufun(offer) < self.opponent_ufun(self._best):
                     self._best = offer
-                    
+
         # Find the current aspiration level
         asp = aspiration_function(
             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -5288,6 +5332,7 @@ class Shochan_base175(SAONegotiator):
                     error=err,
                 ),
             )
+
 
 class Shochan_base200(SAONegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
@@ -5355,7 +5400,6 @@ class Shochan_base200(SAONegotiator):
         self.nidx = 0
         self.opponent_ufun.reserved_value = 0.0
         # self.most
-        
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -5368,9 +5412,14 @@ class Shochan_base200(SAONegotiator):
             # print(self.opponent_ufun.reserved_value)
             return SAOResponse(ResponseType.ACCEPT_OFFER, state.current_offer)
         else:
-            self.preoffer.append((self.ufun(state.current_offer),self.opponent_ufun(state.current_offer)))
+            self.preoffer.append(
+                (
+                    self.ufun(state.current_offer),
+                    self.opponent_ufun(state.current_offer),
+                )
+            )
         # The offering strategy
-            
+
         # nash
         ufuns = (self.ufun, self.opponent_ufun)
         # list all outcomes
@@ -5391,13 +5440,12 @@ class Shochan_base200(SAONegotiator):
         # self._min_acceptable = 0
         # Set the set of outcomes to offer from
 
-      
         # self._outcomes = [
         #     w
         #     for u, w in zip(my_frontier_utils, frontier_outcomes)
         #     if u >= self._min_acceptable
-        # ]        
-    
+        # ]
+
         # We only update our estimate of the rational list of outcomes if it is not set or
         # there is a change in estimated reserved value
         if (
@@ -5424,7 +5472,8 @@ class Shochan_base200(SAONegotiator):
                 [
                     (float(self.ufun(_)), float(self.opponent_ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
 
             ori_outcomes2 = []
@@ -5432,7 +5481,8 @@ class Shochan_base200(SAONegotiator):
                 [
                     (float(self.opponent_ufun(_)), float(self.ufun(_)), _)
                     for _ in outcomes
-                ],reverse=True
+                ],
+                reverse=True,
             )
             # print(tmp[20])
             # i = 0
@@ -5440,19 +5490,19 @@ class Shochan_base200(SAONegotiator):
             for i in range(len(tmp)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp[i][0] not in a):
+                if tmp[i][0] not in a:
                     a.add(tmp[i][0])
-                    if(tmp[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes.append(tmp[i][-1]) 
+                    if tmp[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes.append(tmp[i][-1])
 
             for i in range(len(tmp2)):
                 # print(i)
                 # print(tmp[i])
-                if(tmp2[i][0] not in b):
+                if tmp2[i][0] not in b:
                     b.add(tmp2[i][0])
-                    if(tmp2[i][0] >= self.ufun.reserved_value):
-                        ori_outcomes2.append(tmp2[i][-1]) 
-                        # print([tmp[i][0],tmp[i][1]])    
+                    if tmp2[i][0] >= self.ufun.reserved_value:
+                        ori_outcomes2.append(tmp2[i][-1])
+                        # print([tmp[i][0],tmp[i][1]])
                         # print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
             c = set(ori_outcomes)
             for i in ori_outcomes2:
@@ -5465,8 +5515,7 @@ class Shochan_base200(SAONegotiator):
                 w
                 for u, w in zip(my_frontier_utils, frontier_outcomes)
                 if u >= self.ufun.reserved_value
-            ]     
-
+            ]
 
             # self._rational = sorted(
             #     [
@@ -5482,11 +5531,10 @@ class Shochan_base200(SAONegotiator):
                     (my_util, opp_util, _)
                     for _ in self._outcomes
                     if (my_util := float(self.ufun(_))) > self.ufun.reserved_value
-                    and (opp_util := float(self.opponent_ufun(_)))
-                    > 0
+                    and (opp_util := float(self.opponent_ufun(_))) > 0
                 ],
             )
-            self.nidx = len(self._rational)-1
+            self.nidx = len(self._rational) - 1
             # print(self.nidx)
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
@@ -5499,33 +5547,41 @@ class Shochan_base200(SAONegotiator):
         max_rational = n_rational - 1
         min_indx = max(0, min(max_rational, int(asp * max_rational)))
 
-        asp = aspiration_function(state.relative_time, 1.0, self.ufun.reserved_value, self.e)
-        while(self.nidx!=0):
-            nextidx = max(self.nidx-1 , 0)
-            if(self._rational[nextidx][0] > asp):
+        asp = aspiration_function(
+            state.relative_time, 1.0, self.ufun.reserved_value, self.e
+        )
+        while self.nidx != 0:
+            nextidx = max(self.nidx - 1, 0)
+            if self._rational[nextidx][0] > asp:
                 self.nidx = nextidx
             else:
                 break
 
         min_indx = self.nidx
-        
+
         # find current stochasticity which goes down from the set level to zero linearly
         s = aspiration_function(state.relative_time, self.stochasticity, 0.0, 1.0)
         # find the index of the maximum utility we require based on stochasticity (going down over time)
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
-        max_indx = max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
+        max(0, min(int(min_indx + s * n_rational), max_rational))
         # offer an outcome in the selected range
         # indx = random.randint(min_indx, max_indx) if min_indx != max_indx else min_indx
 
         indx = self.nidx
-        
+
         outcome = self._rational[indx][-1]
         # print("outcome")
         # print(outcome)
-        if(self.ufun(self._best) > self.ufun(outcome) and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            self.ufun(self._best) > self.ufun(outcome)
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
 
-        if(state.relative_time > 0.98 and self.ufun(self._best) > self.ufun.reserved_value):
+        if (
+            state.relative_time > 0.98
+            and self.ufun(self._best) > self.ufun.reserved_value
+        ):
             outcome = self._best
         return SAOResponse(ResponseType.REJECT_OFFER, outcome)
 
@@ -5537,21 +5593,21 @@ class Shochan_base200(SAONegotiator):
         # If there is no offer, there is nothing to accept
         if offer is None:
             return False
-        
+
         # print("offer")
         # print(offer)
-        
+
         if self._best is None:
             self._best = offer
         else:
-            if(self.ufun(offer) > self.ufun(self._best)):
+            if self.ufun(offer) > self.ufun(self._best):
                 # print(self.ufun(offer))
                 # print(self.ufun(self._best))
                 self._best = offer
-            elif(self.ufun(offer) == self.ufun(self._best)):
-                if(self.opponent_ufun(offer) < self.opponent_ufun(self._best)):
+            elif self.ufun(offer) == self.ufun(self._best):
+                if self.opponent_ufun(offer) < self.opponent_ufun(self._best):
                     self._best = offer
-                    
+
         # Find the current aspiration level
         asp = aspiration_function(
             state.relative_time, 1.0, self.ufun.reserved_value, self.e
@@ -5613,4 +5669,3 @@ class Shochan_base200(SAONegotiator):
                     error=err,
                 ),
             )
-

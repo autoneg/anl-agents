@@ -8,17 +8,16 @@ the authors and the ANAC 2024 ANL competition.
 """
 
 import random
+import warnings
 
+import matplotlib.pyplot as plt
+import numpy as np
 from negmas.common import MechanismState
 
 # from helpers.runner import run_a_tournament
 from negmas.outcomes import Outcome
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
-import matplotlib.pyplot as plt
-import numpy as np
-
 from scipy.stats import norm
-import warnings
 
 __all__ = ["MissG"]
 

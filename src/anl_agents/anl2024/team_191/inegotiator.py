@@ -7,15 +7,15 @@ This code is free to use or update given that proper attribution is given to
 the authors and the ANAC 2024 ANL competition.
 """
 
-import random
+import copy
 import math
+import random
+
 import numpy as np
 import scipy
-import copy
 from negmas.outcomes import Outcome
+from negmas.preferences import nash_points, pareto_frontier
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
-from negmas.preferences import pareto_frontier, nash_points
-
 
 __all__ = ["INegotiator"]
 
@@ -294,7 +294,7 @@ class INegotiator(SAONegotiator):
                 if self.forgiveness_count >= 3:
                     offer_val = self.our_offers[
                         self.closest_point(
-                            [l[:2] for l in self.our_offers],
+                            [L[:2] for L in self.our_offers],
                             (own_prev_offer_val, opp_prev_opp_offer_val),
                         )
                     ]
@@ -302,7 +302,7 @@ class INegotiator(SAONegotiator):
                 else:  # match their movement
                     offer_val = self.our_offers[
                         self.closest_point(
-                            [l[:2] for l in self.our_offers],
+                            [L[:2] for L in self.our_offers],
                             (
                                 own_prev_offer_val - opp_concession,
                                 opp_prev_opp_offer_val - opp_concession_for_us,
@@ -320,7 +320,7 @@ class INegotiator(SAONegotiator):
             # tit for tat game
 
             # get only the points close to pareto
-            if self.phase_2_flag == False:
+            if self.phase_2_flag is False:
                 self.our_offers = []
                 # we want our first offer of phase 2 to be the largest pareto point
                 max_vers = 0
@@ -708,9 +708,3 @@ class INegotiator(SAONegotiator):
             self.partner_reserved_value = 0.25
 
         # if you want to do a very small test, use the parameter small=True here. Otherwise, you can use the default parameters.
-
-
-if __name__ == "__main__":
-    from helpers.runner import run_a_tournament
-
-    run_a_tournament(Ingotiator, small=True, debug=False)

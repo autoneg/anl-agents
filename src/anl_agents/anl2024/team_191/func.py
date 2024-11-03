@@ -1,7 +1,11 @@
+import numpy as np
+import copy
+import scipy
+
 __all__ = ["update_partner_reserved_value"]
 
 
-def update_partner_reserved_value(self, state: SAOState) -> None:
+def update_partner_reserved_value(self, state) -> None:
     """This is one of the functions you can implement.
     Using the information of the new offers, you can update the estimated reservation value of the opponent.
 
@@ -60,4 +64,3 @@ def update_partner_reserved_value(self, state: SAOState) -> None:
     self.partner_reserved_value = np.dot(
         self.probability_prev, self.opponents_reserved_value
     )
-

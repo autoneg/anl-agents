@@ -12,15 +12,14 @@ This code is free to use or update given that proper attribution is given to
 the authors and the ANAC 2024 ANL competition.
 """
 
-import random
 import math
+import random
+from operator import itemgetter
+
 import numpy as np
-
 from matplotlib import pyplot as plt
-
 from negmas.outcomes import Outcome
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
-from operator import itemgetter
 
 __all__ = ["Group5"]
 
@@ -196,7 +195,7 @@ class Group5(SAONegotiator):
             return True
 
         """
-        This part accepts any offer that is extremely beneficial for us. 
+        This part accepts any offer that is extremely beneficial for us.
         Like if this is why an offer is accepted it has to be because our opponent made a mistake.
         Always accept if our gain is big enough to where we get enough value out of the deal compared to the number of opponents in the tournament.
         """
@@ -235,7 +234,7 @@ class Group5(SAONegotiator):
         """
         # If this is the first step of the negotiation, offer the starting bid.
         bid = None
-        if self.last_offer == None:
+        if self.last_offer is None:
             bid = self.starting_bid()
         else:
             # Calculate our pretend reservation value

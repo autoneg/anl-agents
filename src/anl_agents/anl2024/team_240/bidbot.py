@@ -7,9 +7,10 @@ This code is free to use or update given that proper attribution is given to
 the authors and the ANAC 2024 ANL competition.
 """
 
+import math
+
 from negmas.outcomes import Outcome
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
-import math
 
 __all__ = ["BidBot"]
 
@@ -161,7 +162,7 @@ class BidBot(SAONegotiator):
         # The opponent's ufun can be accessed using self.opponent_ufun, which is not used yet.
         offer = state.current_offer
 
-        if offer != None:
+        if offer is not None:
             self.ufun_in_opponent_offers.append(self.ufun(offer))
             self.opponent_ufun_in_opponent_offers.append(self.opponent_ufun(offer))
 
@@ -239,11 +240,6 @@ class BidBot(SAONegotiator):
             self.rational_outcomes = rational_outcomes
 
     def create_bidding_tit_for_tat(self, state, t):
-        opponent_last_bid = (
-            state.current_offer if state.current_offer is not None else None
-        )
-
-        my_utility_of_opponent_last_bid = self.previous_ufun
         maximum_offered_utility_by_opponent = max(self.opponent_ufun_in_opponent_offers)
         minimum_offered_utility_by_opponent = min(self.opponent_ufun_in_opponent_offers)
         min_utility_of_opponent_last_bids = min(self.ufun_in_opponent_offers[-5:])

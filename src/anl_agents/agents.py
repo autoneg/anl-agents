@@ -3,6 +3,11 @@ from __future__ import annotations
 from inspect import ismodule
 from typing import Literal, overload
 
+from negmas import SAONegotiator
+from negmas.helpers import get_class, get_full_type_name
+from negmas.situated import Agent
+
+import anl_agents.anl2024 as anl2024
 from anl_agents.anl2024.antiagents.antiagent import AntiAgent
 from anl_agents.anl2024.carc.carcagent import CARCAgent
 from anl_agents.anl2024.susumu.nayesian2 import Nayesian2
@@ -25,12 +30,6 @@ from anl_agents.anl2024.team_twistin.group5 import Group5
 from anl_agents.anl2024.teamkb.agentkb import AgentKB
 from anl_agents.anl2024.tipsonly.katla_nir_aent import KatlaNirAgent
 from anl_agents.anl2024.tulsa_eulers.goldie import Goldie
-
-from negmas import SAONegotiator
-from negmas.helpers import get_class, get_full_type_name
-from negmas.situated import Agent
-
-import anl_agents.anl2024 as anl2024
 
 __all__ = ["get_agents", "FAILING_AGENTS"]
 
@@ -59,7 +58,8 @@ def get_agents(
     top_only: int | float | None = None,
     ignore_failing=False,
     as_class: Literal[False] = False,
-) -> tuple[str, ...]: ...
+) -> tuple[str, ...]:
+    ...
 
 
 @overload
@@ -73,7 +73,8 @@ def get_agents(
     top_only: int | float | None = None,
     ignore_failing=False,
     as_class: Literal[True] = True,
-) -> tuple[type[Agent], ...]: ...
+) -> tuple[type[Agent], ...]:
+    ...
 
 
 def get_agents(

@@ -1,10 +1,11 @@
+import math
 import random
 from typing import List
+
+import numpy as np
 from negmas.gb.common import GBState
 from negmas.outcomes import Outcome
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
-import math
-import numpy as np
 
 __all__ = ["KatlaNirAgent"]
 

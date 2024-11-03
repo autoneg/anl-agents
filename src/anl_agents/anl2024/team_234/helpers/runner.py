@@ -39,14 +39,12 @@ def run_a_tournament(
 
     from anl.anl2024 import (
         DEFAULT_AN2024_COMPETITORS,
-        DEFAULT_TOURNAMENT_PATH,
         anl2024_tournament,
     )
     from anl.anl2024.negotiators import Conceder
-    from negmas.helpers import humanize_time, unique_name
-    from rich import print
+    from negmas.helpers import unique_name
 
-    start = time.perf_counter()
+    time.perf_counter()
     name = (
         unique_name(f"test{AwesomeNegotiator().type_name.split('.')[-1]}", sep="")
         if not nologs
@@ -74,6 +72,6 @@ def run_a_tournament(
             plot_fraction=0,
             name=name,
         ).final_scores
-    pass # print(f"Finished in {humanize_time(time.perf_counter() - start)}")
+    pass  # print(f"Finished in {humanize_time(time.perf_counter() - start)}")
     if name is not None:
-        pass # print(f"You can see all logs at {DEFAULT_TOURNAMENT_PATH / name}")
+        pass  # print(f"You can see all logs at {DEFAULT_TOURNAMENT_PATH / name}")

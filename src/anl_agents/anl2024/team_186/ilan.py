@@ -1,8 +1,9 @@
-import numpy as np
-from negmas.sao import SAOResponse, SAONegotiator
-from negmas import Outcome, ResponseType, SAOState
-from scipy.optimize import curve_fit
 from typing import List
+
+import numpy as np
+from negmas import Outcome, ResponseType, SAOState
+from negmas.sao import SAONegotiator, SAOResponse
+from scipy.optimize import curve_fit
 
 __all__ = ["Ilan"]
 

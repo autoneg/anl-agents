@@ -9,17 +9,19 @@ the authors and the ANAC 2024 ANL competition.
 """
 
 import math
-import time
 import random
+import time
+import warnings
+from collections import deque
+from itertools import chain, zip_longest
+
 import numpy as np
 from negmas.outcomes import Outcome
+from negmas.preferences import nash_points, pareto_frontier
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
 from scipy.optimize import curve_fit
-from collections import deque
-from negmas.preferences import nash_points, pareto_frontier
-from itertools import chain, zip_longest
+
 from .ReservationValuePredictor import ReservationValuePredictor
-import warnings
 
 warnings.filterwarnings("ignore")
 
@@ -88,7 +90,7 @@ class AgentRenting2024(SAONegotiator):
 
             self.own_nash_point = nash_pts[0][0][0]
             self.opp_nash_point = nash_pts[0][0][1]
-        except:
+        except Exception:
             self.own_nash_point = self.reserved_value
             self.opp_nash_point = self.reserved_value
 
@@ -502,7 +504,7 @@ class AgentRenting2024(SAONegotiator):
                 return new_min_utility
             else:
                 return min_utility
-        except:
+        except Exception:
             return min_utility
 
     def opponent_final_offer(self, total_t, t_data, p_data):
@@ -632,7 +634,7 @@ class AgentRenting2024(SAONegotiator):
             estimated_r, estimated_e = params
 
             concession_end_estimate = estimated_r.item()
-        except:
+        except Exception:
             concession_end_estimate = min(p_data)
 
         if len(opp_bid_history) > 0:

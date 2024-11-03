@@ -10,14 +10,12 @@ from pathlib import Path
 
 from anl.anl2024 import (
     DEFAULT_AN2024_COMPETITORS,
-    DEFAULT_TOURNAMENT_PATH,
     anl2024_tournament,
 )
 from anl.anl2024.negotiators import Boulware
-from negmas.helpers import humanize_time, unique_name
+from negmas.helpers import unique_name
 from negmas.inout import Scenario
 from negmas.sao.negotiators.base import SAONegotiator
-from rich import print
 
 
 def run_a_tournament(
@@ -57,7 +55,7 @@ def run_a_tournament(
 
     logdir = Path("./logs/")
 
-    start = time.perf_counter()
+    time.perf_counter()
     name = (
         unique_name(
             f"test{'-'.join([_().type_name.split('.')[-1] for _ in negotiator_types])}",
@@ -95,9 +93,9 @@ def run_a_tournament(
             name=name,
             base_path=logdir,
         ).final_scores
-    pass # print(f"Finished in {humanize_time(time.perf_counter() - start)}")
+    pass  # print(f"Finished in {humanize_time(time.perf_counter() - start)}")
     if name is not None:
-        pass # print(f"You can see all logs at {DEFAULT_TOURNAMENT_PATH / name}")
+        pass  # print(f"You can see all logs at {DEFAULT_TOURNAMENT_PATH / name}")
 
 
 if __name__ == "__main__":

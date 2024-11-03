@@ -10,11 +10,10 @@ the authors and the ANAC 2024 ANL competition.
 import math
 import random
 
+import numpy as np
 from negmas.outcomes import Outcome
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
-import numpy as np
 
-from .helpers.runner import run_a_tournament
 
 __all__ = ["TAKAgent"]
 
@@ -287,14 +286,8 @@ class TAKAgent(SAONegotiator):
             )
             self.partner_reserved_value = posterior_mean
 
-        rational_outcomes = self.rational_outcomes = [
+        self.rational_outcomes = [
             _
             for _ in self.rational_outcomes
             if self.opponent_ufun(_) > self.partner_reserved_value
         ]
-
-
-# if you want to do a very small test, use the parameter small=True here. Otherwise, you can use the default parameters.
-if __name__ == "__main__":
-    # from .helpers.runner import run_a_tournament
-    run_a_tournament(TAK_Agent, small=True)

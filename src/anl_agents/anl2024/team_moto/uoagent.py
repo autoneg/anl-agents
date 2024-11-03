@@ -12,7 +12,6 @@ GRAND_FINAL
 """
 
 import numpy as np
-
 from negmas.outcomes import Outcome
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
 

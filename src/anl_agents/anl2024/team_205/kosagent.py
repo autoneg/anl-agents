@@ -8,6 +8,7 @@ the authors and the ANAC 2024 ANL competition.
 """
 
 import random
+
 import numpy as np
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
 
@@ -78,11 +79,11 @@ class KosAgent(SAONegotiator):
         ) ** (1 / self.e)
 
         buf = self.choose_one(state, self.current_value, self.current_value + 0.03)
-        if buf != None:
+        if buf is not None:
             new_offer = buf
 
         buf = self.choose_one(state, self.current_value, self.current_value + 0.05)
-        if buf != None:
+        if buf is not None:
             new_offer = buf
 
         else:

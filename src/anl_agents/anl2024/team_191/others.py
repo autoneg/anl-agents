@@ -7,12 +7,13 @@ This code is free to use or update given that proper attribution is given to
 the authors and the ANAC 2024 ANL competition.
 """
 
-import random
-import numpy as np
 import math
+import random
+
+import numpy as np
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
 from negmas.preferences import pareto_frontier
+from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
 
 __all__ = ["AwesomeNegotiator", "IngoNegotiator"]
 
@@ -94,7 +95,7 @@ class AwesomeNegotiator(SAONegotiator):
         self.opponent_history.append(offer)
 
         # Never accept a proposal that is either empty or worse than or equal to our reservation value
-        if self.ufun(offer) <= self.ufun.reserved_value or offer == None:
+        if self.ufun(offer) <= self.ufun.reserved_value or offer is None:
             return False
 
         # We consider the last 20% of offers as recent
@@ -149,7 +150,7 @@ class AwesomeNegotiator(SAONegotiator):
 
         # update rational_outcomes by removing the outcomes that are below the reservation value of the opponent
         # Watch out: if the reserved value decreases, this will not add any outcomes.
-        rational_outcomes = self.rational_outcomes = [
+        self.rational_outcomes = [
             _
             for _ in self.rational_outcomes
             if self.opponent_ufun(_) > self.partner_reserved_value
@@ -260,10 +261,10 @@ class IngoNegotiator(SAONegotiator):
         self.prev_offer = self.offer
         self.offer = offer
 
-        if self.initial_proposal_opp == None:
+        if self.initial_proposal_opp is None:
             self.opponents_initial_proposal = offer
 
-        if self.initial_proposal == None:
+        if self.initial_proposal is None:
             self.initial_proposal = self.bidding_strategy(state)
 
         self.update_partner_reserved_value(state)
@@ -373,7 +374,7 @@ class IngoNegotiator(SAONegotiator):
         if (
             self.current_phase(state=state) == 0
         ):  # early game basic tit for tat with chaos
-            if self.opp_previous_offer == None:  # First offer
+            if self.opp_previous_offer is None:  # First offer
                 offer_val = max(our_offers, key=lambda item: item[0])
                 index = offer_val[2]
                 self.own_previous_offer = self.rational_outcomes[index]
@@ -403,7 +404,7 @@ class IngoNegotiator(SAONegotiator):
                 ):  # if defection for 3 turns in a row forgive (dont move)
                     offer_val = our_offers[
                         self.closest_point(
-                            [l[:2] for l in our_offers],
+                            [LL[:2] for LL in our_offers],
                             (
                                 self.ufun(self.own_previous_offer),
                                 self.opponent_ufun(self.own_previous_offer),
@@ -414,7 +415,7 @@ class IngoNegotiator(SAONegotiator):
                 else:  # match their movement
                     offer_val = our_offers[
                         self.closest_point(
-                            [l[:2] for l in our_offers],
+                            [LL[:2] for LL in our_offers],
                             (
                                 self.ufun(self.own_previous_offer) - tit_for_tat_dif,
                                 self.opponent_ufun(self.own_previous_offer)
@@ -464,7 +465,7 @@ class IngoNegotiator(SAONegotiator):
             ):  # if defection for 3 turns in a row forgive (dont move)
                 offer_val = our_offers[
                     self.closest_point(
-                        [l[:2] for l in our_offers],
+                        [LL[:2] for LL in our_offers],
                         (
                             self.ufun(self.own_previous_offer),
                             self.opponent_ufun(self.own_previous_offer),
@@ -475,7 +476,7 @@ class IngoNegotiator(SAONegotiator):
             else:  # match their movement
                 offer_val = our_offers[
                     self.closest_point(
-                        [l[:2] for l in our_offers],
+                        [LL[:2] for LL in our_offers],
                         (
                             self.ufun(self.own_previous_offer) - tit_for_tat_dif,
                             self.opponent_ufun(self.own_previous_offer)
@@ -657,48 +658,45 @@ class IngoNegotiator(SAONegotiator):
 # if you want to do a very small test, use the parameter small=True here. Otherwise, you can use the default parameters.
 if __name__ == "__main__":
     from helpers.runner import run_a_tournament
+    import matplotlib.pyplot as plt
+    from matplotlib.collections import LineCollection
 
     run_a_tournament(IngoNegotiator, small=True, debug=True)
     # run_a_tournament(AwesomeNegotiator, small=True)
 
+    def plotter(line_segments, points, additional_line_segments):
+        # Extract coordinates from line segments
+        lines = [list(segment) for segment in line_segments]
 
-import matplotlib.pyplot as plt
-from matplotlib.collections import LineCollection
+        # Create a LineCollection from the line segments
+        lc = LineCollection(lines, linewidths=0.5)
 
+        # Create a plot
+        fig, ax = plt.subplots(figsize=(15, 8))
 
-def plotter(line_segments, points, additional_line_segments):
-    # Extract coordinates from line segments
-    lines = [list(segment) for segment in line_segments]
+        # Add the LineCollection to the plot
+        ax.add_collection(lc)
 
-    # Create a LineCollection from the line segments
-    lc = LineCollection(lines, linewidths=0.5)
+        # Set limits
+        ax.autoscale()
+        ax.margins(0.1)
 
-    # Create a plot
-    fig, ax = plt.subplots(figsize=(15, 8))
+        # Points
+        x, y = zip(*points)
+        ax.scatter(x, y, color="red")
 
-    # Add the LineCollection to the plot
-    ax.add_collection(lc)
+        # Extract coordinates from additional line segments
+        additional_lines = [list(segment) for segment in additional_line_segments]
 
-    # Set limits
-    ax.autoscale()
-    ax.margins(0.1)
+        # Create a LineCollection for the additional line segments in red
+        lc_red = LineCollection(additional_lines, colors="red")
 
-    # Points
-    x, y = zip(*points)
-    ax.scatter(x, y, color="red")
+        # Add the red LineCollection to the plot
+        ax.add_collection(lc_red)
 
-    # Extract coordinates from additional line segments
-    additional_lines = [list(segment) for segment in additional_line_segments]
+        # Plot each point
+        for segment in line_segments:
+            for point in segment:
+                plt.plot(point[0], point[1], "go")
 
-    # Create a LineCollection for the additional line segments in red
-    lc_red = LineCollection(additional_lines, colors="red")
-
-    # Add the red LineCollection to the plot
-    ax.add_collection(lc_red)
-
-    # Plot each point
-    for segment in line_segments:
-        for point in segment:
-            plt.plot(point[0], point[1], "go")
-
-    plt.show()
+        plt.show()

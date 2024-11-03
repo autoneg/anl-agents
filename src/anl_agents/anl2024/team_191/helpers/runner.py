@@ -38,15 +38,17 @@ def run_a_tournament(
     import time
 
     from anl.anl2024 import (
-        DEFAULT_AN2024_COMPETITORS,
-        DEFAULT_TOURNAMENT_PATH,
         anl2024_tournament,
     )
-    from anl.anl2024.negotiators import Conceder, Boulware, MiCRO, RVFitter, NashSeeker, Linear
-    from negmas.helpers import humanize_time, unique_name
-    from rich import print
+    from anl.anl2024.negotiators import (
+        Boulware,
+        Linear,
+        NashSeeker,
+        RVFitter,
+    )
+    from negmas.helpers import unique_name
 
-    start = time.perf_counter()
+    time.perf_counter()
     name = (
         unique_name(f"test{TestedNegotiator().type_name.split('.')[-1]}", sep="")
         if not nologs
@@ -55,12 +57,12 @@ def run_a_tournament(
     if small:
         anl2024_tournament(
             competitors=tuple([TestedNegotiator, Boulware]),
-            #RVFitter   - Ingo:0.48 vs 0.31
-            #MiCRO      - Ingo:0.03 vs 0.00
-            #Linear     - Ingo:0.37 vs 0.29
-            #NashSeeker - Ingo:0.4 vs 0.41
-            #Boulware   - Ingo:0.34 vs 0.26
-            #Conceder   - Ingo:0.36 vs 0.24
+            # RVFitter   - Ingo:0.48 vs 0.31
+            # MiCRO      - Ingo:0.03 vs 0.00
+            # Linear     - Ingo:0.37 vs 0.29
+            # NashSeeker - Ingo:0.4 vs 0.41
+            # Boulware   - Ingo:0.34 vs 0.26
+            # Conceder   - Ingo:0.36 vs 0.24
             n_scenarios=4,
             n_outcomes=n_outcomes,
             n_repetitions=4,
@@ -71,7 +73,9 @@ def run_a_tournament(
         ).final_scores
     else:
         anl2024_tournament(
-            competitors=tuple([TestedNegotiator] + list((Boulware, RVFitter, NashSeeker, Linear))),
+            competitors=tuple(
+                [TestedNegotiator] + list((Boulware, RVFitter, NashSeeker, Linear))
+            ),
             n_scenarios=n_scenarios,
             n_outcomes=n_outcomes,
             n_repetitions=n_repetitions,
@@ -80,6 +84,6 @@ def run_a_tournament(
             plot_fraction=0,
             name=name,
         ).final_scores
-    pass # print(f"Finished in {humanize_time(time.perf_counter() - start)}")
+    pass  # print(f"Finished in {humanize_time(time.perf_counter() - start)}")
     if name is not None:
-        pass # print(f"You can see all logs at {DEFAULT_TOURNAMENT_PATH / name}")
+        pass  # print(f"You can see all logs at {DEFAULT_TOURNAMENT_PATH / name}")

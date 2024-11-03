@@ -1,7 +1,6 @@
+import numpy as np
 from negmas.outcomes import Outcome
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
-import numpy as np
-
 
 # from sklearn.gaussian_process import GaussianProcessRegressor
 # from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
@@ -155,7 +154,7 @@ class Nayesian2(SAONegotiator):
         # print('called')
         offer = state.current_offer
         # print('called', offer)
-        if offer != None:
+        if offer is not None:
             self._update_self_state(
                 state
             )  # update time sequence, update reservation value estimate, update Nash
@@ -182,7 +181,7 @@ class Nayesian2(SAONegotiator):
         # time = state.relative_time
         time = self.recieved_offers / self.total_steps
         # print(time, step)
-        if offer == None:
+        if offer is None:
             return
 
         # offer_u_on_me = self.ufun(offer)
@@ -289,7 +288,7 @@ class Nayesian2(SAONegotiator):
         """
         cur_step = state.step + 1
         t = cur_step / self.total_steps
-        left_step = self.total_steps - cur_step
+        self.total_steps - cur_step
 
         # opp_left_turns = self.total_steps - self.recieved_offers
         # my_left_turns = self.total_steps - self.proposed_offers
@@ -299,7 +298,7 @@ class Nayesian2(SAONegotiator):
         asp_1 = (self.u_max - self.predicted_nash_u) * (
             1 - np.power(t, 5)
         ) + self.predicted_nash_u
-        asp_2 = (self.u_max - self.my_worst_u) * (1 - np.power(t, 5)) + self.my_worst_u
+        (self.u_max - self.my_worst_u) * (1 - np.power(t, 5)) + self.my_worst_u
 
         asp_3_1 = (self.u_max - self.predicted_best_u) * (
             1 - np.power(t, 5)

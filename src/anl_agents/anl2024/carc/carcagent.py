@@ -1,8 +1,8 @@
-from negmas.common import PreferencesChange
 import numpy as np
-from negmas.sao import SAONegotiator, SAOResponse
 from negmas import Outcome, ResponseType
-from negmas.preferences import pareto_frontier, nash_points
+from negmas.common import PreferencesChange
+from negmas.preferences import nash_points, pareto_frontier
+from negmas.sao import SAONegotiator, SAOResponse
 from scipy.optimize import curve_fit
 
 __all__ = ["CARCAgent"]
@@ -123,10 +123,8 @@ class CARCAgent(SAONegotiator):
         self.opponent_utilities.append(float(self.opponent_ufun(offer)))
         self.opponent_times.append(relative_time)
 
-        tmp_times = [_ for idx, _ in enumerate(self.opponent_times) if idx % 2 == 0]
-        tmp_opponent_utilities = [
-            _ for idx, _ in enumerate(self.opponent_utilities) if idx % 2 == 0
-        ]
+        [_ for idx, _ in enumerate(self.opponent_times) if idx % 2 == 0]
+        [_ for idx, _ in enumerate(self.opponent_utilities) if idx % 2 == 0]
 
         n_unique = len(set(self.opponent_utilities))
         if n_unique < self.min_unique_utilities:

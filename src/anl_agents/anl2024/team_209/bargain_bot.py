@@ -8,12 +8,12 @@ the authors and the ANAC 2024 ANL competition.
 """
 
 from negmas.outcomes import Outcome
+from negmas.preferences import nash_points, pareto_frontier
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
-from negmas.preferences import pareto_frontier, nash_points
 
 from .acceptance_logic import should_accept_offer
-from .opponent_model import update_reserved_value
 from .bidding_strategy import BiddingStrategy
+from .opponent_model import update_reserved_value
 
 __all__ = ["BargainBot"]
 
@@ -79,7 +79,7 @@ class BargainBot(SAONegotiator):
             )[0]
             self.nash_welfare = sum(self.nash_utils)
             self.nash_exists = 1
-        except:
+        except Exception:
             self.nash_exists = 0
             # if there's no nash equilibrium, go back to single feature schema for RV prediction
             self.rv_feature_mode = 0

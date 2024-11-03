@@ -8,8 +8,8 @@ the authors and the ANAC 2024 ANL competition.
 """
 
 import random
-import numpy as np
 
+import numpy as np
 from negmas import pareto_frontier
 from negmas.outcomes import Outcome
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState

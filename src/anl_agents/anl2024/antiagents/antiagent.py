@@ -14,8 +14,8 @@ Team Members:
 """
 
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
 from negmas.preferences import pareto_frontier
+from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
 from scipy.optimize import curve_fit
 from scipy.special import erf
 
@@ -139,7 +139,7 @@ class AntiAgent(SAONegotiator):
             if abs(opt_rv - self.opp_rv) > 0.01:
                 self.opp_rv, self.opp_e = opt_rv, opt_e
                 self.rv_changed = True
-        except:
+        except Exception:
             pass
 
     def opponent_acceptance_probability(self, opp_util: float) -> float:

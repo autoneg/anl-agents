@@ -2,16 +2,19 @@ import math
 
 from negmas import OutcomeSpace
 from negmas.preferences import UFun
+from scipy import integrate
 
 """
     This file is about checking similarities between the decisional values of the agents.
     In this file, we are comparing the two agents utility functions values,preferences, and outcome spaces
-    to determine whether they have similar satisfactions, and later to cluster the opponents to adjust our's 
-    agent behavior.   
+    to determine whether they have similar satisfactions, and later to cluster the opponents to adjust our's
+    agent behavior.
 """
 
 
-def compare_utilities(self_ufun: UFun, other_ufun: UFun, self_outcome_spce: OutcomeSpace) -> float:
+def compare_utilities(
+    self_ufun: UFun, other_ufun: UFun, self_outcome_spce: OutcomeSpace
+) -> float:
     """
     Compares utilities based on the self agent's outcome space and minimizes the epsilon value.
     This function implements the condition:
@@ -35,22 +38,26 @@ def compare_utilities(self_ufun: UFun, other_ufun: UFun, self_outcome_spce: Outc
     if self_outcome_spce is None:
         return -1.0
 
-    min_epsilon = float('inf')
+    min_epsilon = float("inf")
 
     for out in self_outcome_spce:
-        for epsilon in (x / 1000.0 for x in range(1, 1000)):  # Iterate through epsilon values with precision
+        for epsilon in (
+            x / 1000.0 for x in range(1, 1000)
+        ):  # Iterate through epsilon values with precision
             difference = abs(self_ufun(out) - other_ufun(out))
             if difference > epsilon:
                 min_epsilon = min(min_epsilon, difference)
                 break
-    return min_epsilon if min_epsilon != float('inf') else -1.0
+    return min_epsilon if min_epsilon != float("inf") else -1.0
 
 
-from scipy import integrate
-
-
-def sim(self_ufun: UFun, other_ufun: UFun, self_outcome_spce: OutcomeSpace,
-        min_x: float, max_x: float) -> float:
+def sim(
+    self_ufun: UFun,
+    other_ufun: UFun,
+    self_outcome_spce: OutcomeSpace,
+    min_x: float,
+    max_x: float,
+) -> float:
     """
       Compares utilities based on the self agent's outcome space and calculates the integral of the difference
       between utilities within the specified range.
@@ -69,7 +76,7 @@ def sim(self_ufun: UFun, other_ufun: UFun, self_outcome_spce: OutcomeSpace,
     ***
     Note: We need to think about a threshold too.
     ***
-      """
+    """
     if self_outcome_spce is None:
         return -1.0
     # Check if the utilities is exactly the same
@@ -85,14 +92,18 @@ def sim(self_ufun: UFun, other_ufun: UFun, self_outcome_spce: OutcomeSpace,
     try:
         integral_value, _ = integrate.quad(integrand, min_x, max_x)
         return integral_value
-    except Exception as e:
-        pass # print(f"An error occurred: {e}")
+    except Exception:
+        pass  # print(f"An error occurred: {e}")
         return -1.0
 
 
-def beliefs(self_ufun: UFun, other_ufun: UFun,
-            possible_values: OutcomeSpace, self_beliefs=None,
-            other_beliefs=None):
+def beliefs(
+    self_ufun: UFun,
+    other_ufun: UFun,
+    possible_values: OutcomeSpace,
+    self_beliefs=None,
+    other_beliefs=None,
+):
     """
     Two agent i and j will share the same certainties (beliefs) for an attribute if their respective
     probability distributions over the attribute are close or similar.
@@ -125,6 +136,7 @@ def beliefs(self_ufun: UFun, other_ufun: UFun,
         agent1_prob = self_beliefs[i]
         agent2_entropy += -agent1_prob * math.log(agent2_utility)
     return -agent1_entropy, -agent2_entropy
+
 
 # TODO: Implement the DBSCAN clustering technique to cluster a new agent and learn his approach according to
 #  previous negotiations

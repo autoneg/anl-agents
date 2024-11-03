@@ -1,6 +1,6 @@
+import numpy as np
 from negmas.outcomes import Outcome
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
-import numpy as np
 
 __all__ = ["Nayesian"]
 
@@ -114,7 +114,7 @@ class Nayesian(SAONegotiator):
     def _update_nash(self, offer):
         # print('update')
         # update wrost nash according to opponent's bids
-        if offer == None:
+        if offer is None:
             return
         # update partner reservation value, first use the easist way
         # print(offer)

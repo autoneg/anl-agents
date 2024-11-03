@@ -1,7 +1,8 @@
 import random
+
+import numpy as np
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
 from scipy.optimize import curve_fit
-import numpy as np
 
 __all__ = ["Group6"]
 
@@ -34,7 +35,7 @@ class Group6(SAONegotiator):
                 maxfev=1000,
             )
             return params
-        except:
+        except Exception:
             return None
 
     def aspiration_function(self, t, max_util, min_util, exp):
@@ -74,9 +75,3 @@ class Group6(SAONegotiator):
             return SAOResponse(ResponseType.ACCEPT_OFFER, current_offer)
         counter_offer = self.bidding_strategy(current_time)
         return SAOResponse(ResponseType.REJECT_OFFER, counter_offer)
-
-
-if __name__ == "__main__":
-    from helpers.runner import run_a_tournament
-
-    run_a_tournament(Group6, small=True)

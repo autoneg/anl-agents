@@ -9,11 +9,11 @@ the authors and the ANAC 2024 ANL competition.
 
 import random
 
+import numpy as np
 from negmas.outcomes import Outcome
 from negmas.preferences import PresortingInverseUtilityFunction
 from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
 from scipy.optimize import curve_fit
-import numpy as np
 
 __all__ = ["Goldie"]
 
@@ -219,7 +219,6 @@ class Goldie(SAONegotiator):
             self.opponent_ufun.reserved_value = 0.0
             return
         bounds = ((0.2, 0.0), (5.0, min(self.opponent_utilities)))
-        err = ""
         try:
             optimal_vals, _ = curve_fit(
                 lambda x, e, rv: aspiration_function(
@@ -232,7 +231,7 @@ class Goldie(SAONegotiator):
             self.past_opponent_rv = self.opponent_ufun.reserved_value
             self.opponent_ufun.reserved_value = optimal_vals[1]
         except Exception as e:
-            err, optimal_vals = f"{str(e)}", [None, None]
+            _err, optimal_vals = f"{str(e)}", [None, None]
 
 
 # if you want to do a very small test, use the parameter small=True here. Otherwise, you can use the default parameters.

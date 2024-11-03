@@ -1,7 +1,7 @@
-from scipy.optimize import curve_fit
-from negmas.sao import SAONegotiator, SAOResponse
-from negmas import ResponseType
 import numpy as np
+from negmas import ResponseType
+from negmas.sao import SAONegotiator, SAOResponse
+from scipy.optimize import curve_fit
 
 __all__ = ["HardChaosNegotiator"]
 

@@ -1,8 +1,9 @@
-from pytest import mark
 from itertools import product
 
-from anl_agents import get_agents
 from anl.anl2024.runner import anl2024_tournament
+from pytest import mark
+
+from anl_agents import get_agents
 
 tracks = ["advantage"]
 years = [2024]
