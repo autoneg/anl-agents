@@ -32,7 +32,12 @@ class BiddingStrategy:
         agent: Our set up agent
         phase_settings: Dictionary with configuration
         """
-        self.steps_count = agent.nmi.n_steps
+
+        self.steps_count = (
+            agent.nmi.n_steps
+            if agent.nmi.n_steps is not None
+            else int(agent.nmi.state.time / agent.nmi.state.relative_time + 0.5)
+        )
         self.opponent_reserved_value = None
 
         # Set random

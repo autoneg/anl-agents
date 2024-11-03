@@ -34,6 +34,7 @@ class INegotiator(SAONegotiator):
             - We use it to save a list of all rational outcomes.
 
         """
+        _ = changes
         # If there a no outcomes (should in theory never happen)
         if self.ufun is None:
             return
@@ -61,7 +62,16 @@ class INegotiator(SAONegotiator):
         self.new_proposal = None
 
         min_number_hyp = 10
-        max_number_hyp = np.min([int(self.nmi.n_steps / 5), 100])
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        if nsteps__ is not None:
+            max_number_hyp = np.min([int(nsteps__ / 5), 100])
+        else:
+            max_number_hyp = 100
 
         self.num_of_hyp = np.max([min_number_hyp, max_number_hyp])
         segments = np.linspace(0, 1, num=self.num_of_hyp + 1)
@@ -132,7 +142,13 @@ class INegotiator(SAONegotiator):
             return False
 
         # We consider the last 3% of the negotation as the final offers, or the final round in smaller negotations
-        end_game = self.current_phase(state) == 2 or state.step + 1 == self.nmi.n_steps
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        end_game = self.current_phase(state) == 2 or state.step + 1 == nsteps__
         # In case we get significantly more utility than our reservation value in the end game, we accept
         if (
             end_game
@@ -165,8 +181,13 @@ class INegotiator(SAONegotiator):
         return np.argmin(dist_2)
 
     def current_phase(self, state):
-        percentage_complete = state.step / self.nmi.n_steps
-        steps_left = self.nmi.n_steps - state.step
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        percentage_complete = state.step / nsteps__
+        steps_left = nsteps__ - state.step
         min_endgame_steps = 5
         if percentage_complete < 0.89 and steps_left > min_endgame_steps:
             return 0
@@ -182,6 +203,7 @@ class INegotiator(SAONegotiator):
         least_lines = []
         line_segments = []
         points_with_distance = []
+        assert self.ufun and self.opponent_ufun
 
         a = [self.ufun(item) for item in self.rational_outcomes]
         b = [self.opponent_ufun(item) for item in self.rational_outcomes]
@@ -220,6 +242,7 @@ class INegotiator(SAONegotiator):
         return points_with_distance
 
     def bidding_initializations(self):
+        assert self.ufun and self.opponent_ufun
         for i in self.rational_outcomes:
             self.our_offers.append(
                 (self.ufun(i), self.opponent_ufun(i), self.rational_outcomes.index(i))
@@ -258,16 +281,17 @@ class INegotiator(SAONegotiator):
         # Get all possible offers
 
         # Variable init
-        opp_prev_opp_offer_val = self.opponent_ufun(self.own_previous_offer)
-        own_prev_offer_val = self.ufun(self.own_previous_offer)
+        assert self.ufun and self.opponent_ufun
+        opp_prev_opp_offer_val = float(self.opponent_ufun(self.own_previous_offer))
+        own_prev_offer_val = float(self.ufun(self.own_previous_offer))
 
         # calculate their movement
-        opp_prev_offer_val = self.opponent_ufun(self.prev_opp_offer)
-        opp_current_offer_val = self.opponent_ufun(state.current_offer)
+        opp_prev_offer_val = float(self.opponent_ufun(self.prev_opp_offer))
+        opp_current_offer_val = float(self.opponent_ufun(state.current_offer))
         opp_concession = opp_prev_offer_val - opp_current_offer_val
 
-        own_prev_opp_offer_val = self.ufun(self.prev_opp_offer)
-        own_curr_offer_val = self.ufun(state.current_offer)
+        own_prev_opp_offer_val = float(self.ufun(self.prev_opp_offer))
+        own_curr_offer_val = float(self.ufun(state.current_offer))
         opp_concession_for_us = own_prev_opp_offer_val - own_curr_offer_val
 
         if opp_concession > 0:
@@ -340,7 +364,7 @@ class INegotiator(SAONegotiator):
                     self.phase_2_flag = True
                     return self.bidding_strategy(state)
                 self.phase_2_flag = True
-                index = max_vers[2]
+                index = max_vers[2]  # type: ignore
                 self.own_previous_offer = self.rational_outcomes[index]
 
                 self.prev_opp_offer = state.current_offer
@@ -412,8 +436,9 @@ class INegotiator(SAONegotiator):
                     (self.ufun(i), self.opponent_ufun(i), final_outcomes.index(i))
                 )
             # get nash points
+            assert self.ufun and self.opponent_ufun
             nash = nash_points(
-                [self.ufun, self.opponent_ufun],
+                [self.ufun, self.opponent_ufun],  # type: ignore
                 pareto_points[0],
                 ranges=[(self.reserved_value, 1), (self.partner_reserved_value, 1)],
             )
@@ -422,7 +447,7 @@ class INegotiator(SAONegotiator):
                 # try to find any nash point if none are found by reducing the opp. RV incrementally
                 temp_opp_rv -= 0.01
                 nash = nash_points(
-                    [self.ufun, self.opponent_ufun],
+                    [self.ufun, self.opponent_ufun],  # type: ignore
                     pareto_points[0],
                     ranges=[(self.reserved_value, 1), (temp_opp_rv, 1)],
                 )
@@ -448,10 +473,22 @@ class INegotiator(SAONegotiator):
                 return self.rational_outcomes[index]
             else:
                 # get number of turns left
-                num_of_turns_left = self.nmi.n_steps - state.step
+
+                nsteps__ = (
+                    self.nmi.n_steps
+                    if self.nmi.n_steps
+                    else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+                )
+                if nsteps__ is None:
+                    num_of_turns_left = min(
+                        state.step * self.nmi.time_limit / state.time,
+                        self.nmi.n_outcomes,
+                    )
+                else:
+                    num_of_turns_left = nsteps__ - state.step
 
                 # move along pareto towards the nash to end there in the last step
-                move_distance = self.ufun(self.own_previous_offer)
+                move_distance = float(self.ufun(self.own_previous_offer))
                 # nudge towards the nash point
                 nudge = np.abs(nash[0][0][0] - move_distance) / num_of_turns_left
 
@@ -461,7 +498,9 @@ class INegotiator(SAONegotiator):
                 elif move_distance < nash[0][0][0]:
                     move_distance += nudge
 
-                inverse_move_distance = self.opponent_ufun(self.own_previous_offer)
+                inverse_move_distance = float(
+                    self.opponent_ufun(self.own_previous_offer)
+                )
                 nudge = (
                     np.abs(nash[0][0][1] - inverse_move_distance) / num_of_turns_left
                 )
@@ -503,9 +542,9 @@ class INegotiator(SAONegotiator):
             # compute opponent lambda using (7)
             log_base = self.current_step / (self.current_step - 1)
 
-            opp_offer_val = self.opponent_ufun(self.opp_offer)
-            opp_init_val = self.opponent_ufun(self.opponents_initial_proposal)
-            opp_prev_offer_val = self.opponent_ufun(self.prev_opp_offer)
+            opp_offer_val = float(self.opponent_ufun(self.opp_offer))
+            opp_init_val = float(self.opponent_ufun(self.opponents_initial_proposal))
+            opp_prev_offer_val = float(self.opponent_ufun(self.prev_opp_offer))
 
             if opp_offer_val > opp_init_val:
                 opp_offer_val = opp_init_val
@@ -529,7 +568,12 @@ class INegotiator(SAONegotiator):
                 lambda_opp = min([lambda_opp, 10**4])
 
             # compute discount factor using (10)
-            discount_ratio = np.power(self.current_step / self.nmi.n_steps, lambda_opp)
+            if self.nmi.n_steps is not None:
+                discount_ratio = np.power(
+                    self.current_step / self.nmi.n_steps, lambda_opp
+                )
+            else:
+                discount_ratio = np.power(state.relative_time, lambda_opp)
             if discount_ratio < 1e-6 or math.isnan(discount_ratio):
                 discount_ratio = 1e-6
 
@@ -551,9 +595,9 @@ class INegotiator(SAONegotiator):
                 for i in range(num_buckets):
                     lower_bound = bucket_boundaries[i]
                     upper_bound = bucket_boundaries[i + 1]
-                    probability = scipy.stats.norm.cdf(
+                    probability = scipy.stats.norm.cdf(  # type: ignore
                         upper_bound, mean, std_dev
-                    ) - scipy.stats.norm.cdf(lower_bound, mean, std_dev)
+                    ) - scipy.stats.norm.cdf(lower_bound, mean, std_dev)  # type: ignore
                     probabilities[i] = probability
 
                 probabilities /= sum(probabilities)
@@ -638,16 +682,22 @@ class INegotiator(SAONegotiator):
             )
             return
 
-        opp_offer_val = self.opponent_ufun(self.opp_offer)
+        opp_offer_val = float(self.opponent_ufun(self.opp_offer))
         mean = 0.6 * opp_offer_val
 
         # Adjust std_dev to control the spread of the distribution
         # making it dynamic might not be optimal, need to test
-        std_dev = np.max(
-            np.array(
-                [(self.nmi.n_steps - self.current_step) / self.nmi.n_steps - 0.6, 0.1]
+        if self.nmi.n_steps is not None:
+            std_dev = np.max(
+                np.array(
+                    [
+                        (self.nmi.n_steps - self.current_step) / self.nmi.n_steps - 0.6,
+                        0.1,
+                    ]
+                )
             )
-        )
+        else:
+            std_dev = np.max(np.array([(1 - state.relative_time) - 0.6, 0.1]))
 
         # Calculate bucket boundaries
         bucket_boundaries = np.linspace(0, 1, self.num_of_hyp + 1)
@@ -655,6 +705,7 @@ class INegotiator(SAONegotiator):
         # Calculate probabilities for each bucket
         probabilities = copy.deepcopy(self.probability_prev)
 
+        index = 0
         for index, value in enumerate(probabilities):
             if opp_offer_val < self.opponents_reserved_value[index]:
                 # it should never be below, and the ones 20% closest to it as a percentage of number of hypothesis
@@ -668,7 +719,7 @@ class INegotiator(SAONegotiator):
                         break
                 probabilities[index] = 0
 
-        scale_additions = scipy.stats.norm.cdf(1, mean, std_dev)
+        scale_additions = scipy.stats.norm.cdf(1, mean, std_dev)  # type: ignore
         # scale_additions = 1
         for i in range(self.num_of_hyp):
             if probabilities[index] == 0:
@@ -676,9 +727,9 @@ class INegotiator(SAONegotiator):
             lower_bound = bucket_boundaries[i]
             upper_bound = bucket_boundaries[i + 1]
 
-            probability = scipy.stats.norm.cdf(
+            probability = scipy.stats.norm.cdf(  # type: ignore
                 upper_bound, mean, std_dev
-            ) - scipy.stats.norm.cdf(lower_bound, mean, std_dev)
+            ) - scipy.stats.norm.cdf(lower_bound, mean, std_dev)  # type: ignore
             probability /= scale_additions
             probabilities[i] += probability
 

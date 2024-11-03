@@ -124,7 +124,12 @@ class AgentKB(SAONegotiator):
         offer = state.current_offer
 
         # 超妥協フェーズ
-        if self.step == self.nmi.n_steps:
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        if self.step == nsteps__:
             if offer in self.rational_outcomes:
                 com_val = self.make_threshold_depend_on_reservation(
                     m=self.m2, n=self.n2
@@ -161,7 +166,12 @@ class AgentKB(SAONegotiator):
         # The opponent's ufun can be accessed using parter_ufun, which is not used yet.
 
         # 超妥協フェーズ
-        if self.step == self.nmi.n_steps:
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        if self.step == nsteps__:
             com_val = self.make_threshold_depend_on_reservation(m=self.m2, n=self.n2)
 
             choose_bid = self.get_target_bid(com_val, self.frontier_outcomes)

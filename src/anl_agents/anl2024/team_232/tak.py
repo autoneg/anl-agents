@@ -77,7 +77,13 @@ class TAKAgent(SAONegotiator):
         self.partner_reserved_value = self.ufun.reserved_value
 
         self.opponent_ufun.reserved_value = self.ufun.reserved_value
-        self.negotiation_duration = self.nmi.n_steps
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        self.negotiation_duration = nsteps__
 
     def __call__(self, state: SAOState) -> SAOResponse:
         """

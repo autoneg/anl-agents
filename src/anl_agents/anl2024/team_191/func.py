@@ -29,11 +29,13 @@ def update_partner_reserved_value(self, state) -> None:
 
     # Adjust std_dev to control the spread of the distribution
     # making it dynamic might not be optimal, need to test
-    std_dev = np.max(
-        np.array(
-            [(self.nmi.n_steps - self.current_step) / self.nmi.n_steps - 0.6, 0.05]
-        )
+
+    nsteps__ = (
+        self.nmi.n_steps
+        if self.nmi.n_steps
+        else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
     )
+    std_dev = np.max(np.array([(nsteps__ - self.current_step) / nsteps__ - 0.6, 0.05]))
 
     # Calculate bucket boundaries
     bucket_boundaries = np.linspace(0, 1, self.num_of_hyp + 1)

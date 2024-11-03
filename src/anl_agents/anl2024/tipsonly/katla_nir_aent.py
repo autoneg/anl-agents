@@ -213,7 +213,13 @@ class KatlaNirAgent(SAONegotiator):
         # initialize the parameters
         self.IP = 101 - self.ufun(self.ufun.best()) * 100
         self.RP = 100 - self.reserved_value * 100
-        self.T = self.nmi.n_steps
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        self.T = nsteps__
         self.beta = 1.6
         self.N = (3, 3)
         self.HISTORY = []

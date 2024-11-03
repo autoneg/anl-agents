@@ -21,9 +21,15 @@ class Ilan(SAONegotiator):
         self._past_opponent_rv = 0.0
         self._rational = []
 
-    def on_session_starting(self):
-        super().on_session_starting()
-        self.total_rounds = self.session.n_steps
+    def on_negotiation_start(self, state):
+        super().on_negotiation_start(state)
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        self.total_rounds = nsteps__
 
     def __call__(self, state: SAOState) -> SAOResponse:
         self.update_reserved_value(state.current_offer, state.relative_time)
@@ -34,6 +40,7 @@ class Ilan(SAONegotiator):
         )
 
     def generate_offer(self, relative_time) -> Outcome:
+        assert self.ufun and self.opponent_ufun
         if (
             not self._rational
             or abs(self.opponent_ufun.reserved_value - self._past_opponent_rv) > 1e-3
@@ -59,12 +66,14 @@ class Ilan(SAONegotiator):
     def is_acceptable(self, offer, relative_time) -> bool:
         if offer is None:
             return False
+        assert self.ufun
         asp = (1.0 - np.power(relative_time, self.e)) + self.ufun.reserved_value
         return float(self.ufun(offer)) >= asp * 1.2
 
     def update_reserved_value(self, offer, relative_time):
         if offer is None:
             return
+        assert self.opponent_ufun
         self.opponents_utilities.append(float(self.opponent_ufun(offer)))
         self.opponent_times.append(relative_time)
         bounds = ((0.2, 0.0), (5.0, min(self.opponents_utilities)))

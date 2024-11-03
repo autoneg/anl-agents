@@ -77,19 +77,26 @@ def update_reserved_value(agent, offer):
 
     # Find window size
     # Find neg_phase
-    if (agent.nmi.state.step / agent.nmi.n_steps) <= 4 / 8:
+
+    nsteps__ = (
+        agent.nmi.n_steps
+        if agent.nmi.n_steps
+        else int(agent.nmi.state.time / agent.nmi.state.relative_time + 0.5)
+    )
+    if (agent.nmi.state.step / nsteps__) <= 4 / 8:
         agent.neg_phase = 0
-    elif (agent.nmi.state.step / agent.nmi.n_steps) <= 6 / 8:
+    elif (agent.nmi.state.step / nsteps__) <= 6 / 8:
         agent.neg_phase = 1
-    elif (agent.nmi.state.step / agent.nmi.n_steps) <= 7 / 8:
+    elif (agent.nmi.state.step / nsteps__) <= 7 / 8:
         agent.neg_phase = 2
     else:
         agent.neg_phase = 3
 
     # Find step_class
     step_ths = [100, 200, 500, 1000, 2500, 5000, 10000]
+
     for i, threshold in enumerate(step_ths):
-        if agent.nmi.n_steps <= threshold:
+        if nsteps__ <= threshold:
             agent.step_class = i
             break
 

@@ -35,7 +35,13 @@ class AntiAgent(SAONegotiator):
         # are we bidding first according to the negotiation protocol?
         self.first = not self.nmi.negotiator_index(self.id)
         # number of negotiation rounds
-        self.deadline = self.nmi.n_steps
+
+        nsteps__ = (
+            self.nmi.n_steps
+            if self.nmi.n_steps
+            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        )
+        self.deadline = nsteps__
         # all opponent offer timestamps
         self.opp_times = []
         # all opponent offer own utilities
