@@ -1,8 +1,11 @@
-import numpy as np
-from negmas import Outcome, ResponseType
 from negmas.common import PreferencesChange
+from copy import deepcopy
+
+from anl.anl2024.negotiators.base import ANLNegotiator
+import numpy as np
+from negmas.sao import SAOResponse
+from negmas import Outcome, ResponseType
 from negmas.preferences import nash_points, pareto_frontier
-from negmas.sao import SAONegotiator, SAOResponse
 from scipy.optimize import curve_fit
 
 __all__ = ["CARCAgent"]
@@ -12,7 +15,7 @@ def aspiration_function(t, mx, rv, e, c):
     return (mx - rv) * (1.0 - c * np.power(t, e)) + rv
 
 
-class CARCAgent(SAONegotiator):
+class CARCAgent(ANLNegotiator):
     def __init__(
         self,
         *args,
@@ -37,10 +40,16 @@ class CARCAgent(SAONegotiator):
         self._opponent_nash_util = 0.0
 
     def on_preferences_changed(self, changes: list[PreferencesChange]):
+        assert (
+            self.ufun is not None
+            and self.opponent_ufun is not None
+            and self.ufun.outcome_space is not None
+        )
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
         ufuns = (self.ufun, self.opponent_ufun)
         outcomes = list(self.ufun.outcome_space.enumerate_or_sample())
-        frontier_utils, _ = pareto_frontier(ufuns, outcomes)
-        nash_point = nash_points(ufuns, frontier_utils)
+        frontier_utils, _ = pareto_frontier(ufuns, outcomes)  # type: ignore
+        nash_point = nash_points(ufuns, frontier_utils)  # type: ignore
         if nash_point:
             self._nash_util = nash_point[0][0][0]
             self._opponent_nash_util = nash_point[0][0][1]
@@ -65,6 +74,7 @@ class CARCAgent(SAONegotiator):
                 * 1.2
             ],
         )
+        self.best_offer__ = self.ufun.best()
 
     def __call__(self, state):
         # update the opponent reserved value in self.opponent_ufun
@@ -79,7 +89,7 @@ class CARCAgent(SAONegotiator):
 
     def generate_offer(self, relative_time) -> Outcome:
         if not self._rational:
-            return self.ufun.best()
+            return self.best_offer__
 
         asp = aspiration_function(relative_time, 1.0, 0.0, 1.0, 1.0)
         asp1 = aspiration_function(relative_time, 1.0, 0.0, 2.0, 0.8)
@@ -90,9 +100,10 @@ class CARCAgent(SAONegotiator):
             np.random.randint(min_indx, max_indx) if max_indx > min_indx else max_indx
         )
         outcome = self._rational[indx][-1]
-        if relative_time > 0.3:
-            if self.opponent_ufun(outcome) < self.opponent_ufun.reserved_value:
-                self.generate_offer(relative_time)
+        # if relative_time > 0.3:
+        #     assert self.opponent_ufun is not None
+        #     if self.opponent_ufun(outcome) < self.opponent_ufun.reserved_value:
+        #         self.generate_offer(relative_time)
         return outcome
 
     def is_acceptable(self, offer, relative_time) -> bool:
@@ -106,6 +117,7 @@ class CARCAgent(SAONegotiator):
         indx = max(0, min(max_rational, int(asp * max_rational)))
         outcome = self._rational[indx][-1]
 
+        assert self.ufun is not None
         if self.ufun(offer) >= self.ufun(outcome):
             return True
         elif relative_time > 0.98 and self.ufun(offer) > self.ufun.reserved_value:
@@ -123,8 +135,10 @@ class CARCAgent(SAONegotiator):
         self.opponent_utilities.append(float(self.opponent_ufun(offer)))
         self.opponent_times.append(relative_time)
 
-        [_ for idx, _ in enumerate(self.opponent_times) if idx % 2 == 0]
-        [_ for idx, _ in enumerate(self.opponent_utilities) if idx % 2 == 0]
+        tmp_times = [_ for idx, _ in enumerate(self.opponent_times) if idx % 2 == 0]
+        tmp_opponent_utilities = [
+            _ for idx, _ in enumerate(self.opponent_utilities) if idx % 2 == 0
+        ]
 
         n_unique = len(set(self.opponent_utilities))
         if n_unique < self.min_unique_utilities:
@@ -138,8 +152,8 @@ class CARCAgent(SAONegotiator):
                 lambda x, e, rv: aspiration_function(
                     x, self.opponent_utilities[0], rv, e, 1.0
                 ),
-                self.tmp_times,
-                self.tmp_opponent_utilities,
+                tmp_times,
+                tmp_opponent_utilities,
                 bounds=bounds,
             )
             if relative_time >= 0.4 and len(self.opponent_utilities) > 10:

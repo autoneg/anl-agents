@@ -12,17 +12,21 @@ import warnings
 
 import matplotlib.pyplot as plt
 import numpy as np
+from anl.anl2024.negotiators.base import ANLNegotiator
+
 from negmas.common import MechanismState
 
 # from helpers.runner import run_a_tournament
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
+
+
 from scipy.stats import norm
 
 __all__ = ["MissG"]
 
 
-class MissG(SAONegotiator):
+class MissG(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """
@@ -75,6 +79,7 @@ class MissG(SAONegotiator):
         self.rv_history.append(self.partner_reserved_value)
         # Calculate pareto frontier
         self.pareto_front = self._find_pareto_front()
+        self.best_offer__ = self.ufun.best()
 
     def __call__(self, state: SAOState) -> SAOResponse:
         """
@@ -328,7 +333,7 @@ class MissG(SAONegotiator):
         # If there is no possible offers (e.g. our estimation of opponent rv is wrong)
         # then revert to offering our top offer
         if not possible_offers:
-            return self.ufun.best()
+            return self.best_offer__
 
         # Otherwise, select from the best possible offer
         return possible_offers[0]

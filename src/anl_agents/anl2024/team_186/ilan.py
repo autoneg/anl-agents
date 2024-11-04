@@ -1,14 +1,16 @@
+import numpy as np
+from negmas.sao import SAOResponse
+from negmas import Outcome, ResponseType, SAOState
+from scipy.optimize import curve_fit
+from copy import deepcopy
+from anl.anl2024.negotiators.base import ANLNegotiator
 from typing import List
 
-import numpy as np
-from negmas import Outcome, ResponseType, SAOState
-from negmas.sao import SAONegotiator, SAOResponse
-from scipy.optimize import curve_fit
 
 __all__ = ["Ilan"]
 
 
-class Ilan(SAONegotiator):
+class Ilan(ANLNegotiator):
     def __init__(
         self, *args, e: float = 5.0, aggressiveness: float = 0.8, **kwargs
     ) -> None:
@@ -27,9 +29,18 @@ class Ilan(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         self.total_rounds = nsteps__
+
+    def on_preferences_changed(self, changes):
+        assert self.ufun is not None
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
+        self.best_offer__ = self.ufun.best()
+        return super().on_preferences_changed(changes)
 
     def __call__(self, state: SAOState) -> SAOResponse:
         self.update_reserved_value(state.current_offer, state.relative_time)
@@ -57,7 +68,7 @@ class Ilan(SAONegotiator):
                 ]
             )
         if not self._rational:
-            return self.ufun.best()
+            return self.best_offer__
         asp = (1.0 - np.power(relative_time, self.e)) + 1.0
         max_rational = len(self._rational) - 1
         idx = max(0, min(max_rational, int(asp * max_rational * self.aggressiveness)))

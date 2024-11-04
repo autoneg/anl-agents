@@ -81,7 +81,9 @@ def update_reserved_value(agent, offer):
     nsteps__ = (
         agent.nmi.n_steps
         if agent.nmi.n_steps
-        else int(agent.nmi.state.time / agent.nmi.state.relative_time + 0.5)
+        else int(
+            (agent.nmi.state.time + 1e-6) / (agent.nmi.state.relative_time + 1e-6) + 0.5
+        )
     )
     if (agent.nmi.state.step / nsteps__) <= 4 / 8:
         agent.neg_phase = 0

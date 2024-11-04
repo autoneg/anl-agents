@@ -1,14 +1,16 @@
+from anl.anl2024.negotiators.base import ANLNegotiator
 import numpy as np
 from negmas import (
     Outcome,
     ResponseType,
-    SAONegotiator,
     SAOResponse,
     SAOState,
     nash_points,
     pareto_frontier,
 )
+from copy import deepcopy
 from scipy.optimize import curve_fit
+
 
 __all__ = ["Shochan"]
 
@@ -17,7 +19,7 @@ def aspiration_function(t, mx, rv, e):
     return (mx - rv) * (1.0 - np.power(t, e)) + rv
 
 
-class Shochan(SAONegotiator):
+class Shochan(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -85,8 +87,6 @@ class Shochan(SAONegotiator):
         self._nash_factor = nash_factor
         self._best: Outcome = None  # type: ignore
         self.nidx = 0
-        assert self.opponent_ufun is not None
-        self.opponent_ufun.reserved_value = 0.0
         self.lasttime = 1.0
         self.diffmean = 0.01
         self.pat = 0.95
@@ -96,6 +96,14 @@ class Shochan(SAONegotiator):
         self.g4 = 0
         self.mode = 0
         self.plus = 0.10
+
+    def on_preferences_changed(self, changes):
+        assert self.ufun is not None
+        assert self.opponent_ufun is not None
+        self.best_offer__ = self.ufun.best()
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
+        self.opponent_ufun.reserved_value = 0.0
+        return super().on_preferences_changed(changes)
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -261,7 +269,7 @@ class Shochan(SAONegotiator):
         # then just revert to offering our top offer
         max_rational = len(self._rational) - 1
         if not self._rational:
-            return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
+            return SAOResponse(ResponseType.REJECT_OFFER, self.best_offer__)
 
         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
@@ -371,7 +379,9 @@ class Shochan(SAONegotiator):
             # if(self.ufun(self._best) > self.ufun.reserved_value):
             #     outcome = self._best
         else:
-            outcome = self.ufun.best()
+            if self.best_offer__ is None:
+                self.best_offer__ = self.ufun.best()
+            outcome = self.best_offer__
             border = self.ufun.reserved_value
             border = self.y2
             if nash:
@@ -461,7 +471,7 @@ class Shochan(SAONegotiator):
         return float(self.ufun(offer)) >= myasp
 
 
-class Shochan_base75(SAONegotiator):
+class Shochan_base75(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -527,6 +537,7 @@ class Shochan_base75(SAONegotiator):
         self.nidx = 0
         assert self.opponent_ufun
         self.opponent_ufun.reserved_value = 0.0
+        self.best_offer__ = None
         # self.most
 
     def __call__(self, state: SAOState) -> SAOResponse:
@@ -668,7 +679,7 @@ class Shochan_base75(SAONegotiator):
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
         if not self._rational:
-            return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
+            return SAOResponse(ResponseType.REJECT_OFFER, self.best_offer__)
         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
         # find the index of the rational outcome at the aspiration level (in the rational set of outcomes)
@@ -800,7 +811,7 @@ class Shochan_base75(SAONegotiator):
             )
 
 
-class Shochan_base50(SAONegotiator):
+class Shochan_base50(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -866,7 +877,12 @@ class Shochan_base50(SAONegotiator):
         self.nidx = 0
         assert self.opponent_ufun
         self.opponent_ufun.reserved_value = 0.0
-        # self.most
+        self.best_offer__ = None
+
+    def on_preferences_changed(self, changes):
+        assert self.ufun is not None
+        self.best_offer__ = self.ufun.best()
+        return super().on_preferences_changed(changes)
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -1007,7 +1023,7 @@ class Shochan_base50(SAONegotiator):
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
         if not self._rational:
-            return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
+            return SAOResponse(ResponseType.REJECT_OFFER, self.best_offer__)
         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
         # find the index of the rational outcome at the aspiration level (in the rational set of outcomes)
@@ -1139,7 +1155,7 @@ class Shochan_base50(SAONegotiator):
             )
 
 
-class Shochan_base100(SAONegotiator):
+class Shochan_base100(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -1205,7 +1221,12 @@ class Shochan_base100(SAONegotiator):
         self.nidx = 0
         assert self.opponent_ufun
         self.opponent_ufun.reserved_value = 0.0
-        # self.most
+        self.best_offer__ = None
+
+    def on_preferences_changed(self, changes):
+        assert self.ufun is not None
+        self.best_offer__ = self.ufun.best()
+        return super().on_preferences_changed(changes)
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -1346,7 +1367,7 @@ class Shochan_base100(SAONegotiator):
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
         if not self._rational:
-            return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
+            return SAOResponse(ResponseType.REJECT_OFFER, self.best_offer__)
         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
         # find the index of the rational outcome at the aspiration level (in the rational set of outcomes)
@@ -1478,7 +1499,7 @@ class Shochan_base100(SAONegotiator):
             )
 
 
-class Shochan_base125(SAONegotiator):
+class Shochan_base125(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -1544,7 +1565,12 @@ class Shochan_base125(SAONegotiator):
         self.nidx = 0
         assert self.opponent_ufun
         self.opponent_ufun.reserved_value = 0.0
-        # self.most
+        self.best_offer__ = None
+
+    def on_preferences_changed(self, changes):
+        assert self.ufun is not None
+        self.best_offer__ = self.ufun.best()
+        return super().on_preferences_changed(changes)
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -1685,7 +1711,7 @@ class Shochan_base125(SAONegotiator):
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
         if not self._rational:
-            return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
+            return SAOResponse(ResponseType.REJECT_OFFER, self.best_offer__)
         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
         # find the index of the rational outcome at the aspiration level (in the rational set of outcomes)
@@ -1817,7 +1843,7 @@ class Shochan_base125(SAONegotiator):
             )
 
 
-class Shochan_base150(SAONegotiator):
+class Shochan_base150(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -1883,7 +1909,12 @@ class Shochan_base150(SAONegotiator):
         self.nidx = 0
         assert self.opponent_ufun
         self.opponent_ufun.reserved_value = 0.0
-        # self.most
+        self.best_offer__ = None
+
+    def on_preferences_changed(self, changes):
+        assert self.ufun is not None
+        self.best_offer__ = self.ufun.best()
+        return super().on_preferences_changed(changes)
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -2024,7 +2055,7 @@ class Shochan_base150(SAONegotiator):
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
         if not self._rational:
-            return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
+            return SAOResponse(ResponseType.REJECT_OFFER, self.best_offer__)
         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
         # find the index of the rational outcome at the aspiration level (in the rational set of outcomes)
@@ -2156,7 +2187,7 @@ class Shochan_base150(SAONegotiator):
             )
 
 
-class Shochan_base175(SAONegotiator):
+class Shochan_base175(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -2222,7 +2253,12 @@ class Shochan_base175(SAONegotiator):
         self.nidx = 0
         assert self.opponent_ufun
         self.opponent_ufun.reserved_value = 0.0
-        # self.most
+        self.best_offer__ = None
+
+    def on_preferences_changed(self, changes):
+        assert self.ufun is not None
+        self.best_offer__ = self.ufun.best()
+        return super().on_preferences_changed(changes)
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -2363,7 +2399,7 @@ class Shochan_base175(SAONegotiator):
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
         if not self._rational:
-            return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
+            return SAOResponse(ResponseType.REJECT_OFFER, self.best_offer__)
         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
         # find the index of the rational outcome at the aspiration level (in the rational set of outcomes)
@@ -2495,7 +2531,7 @@ class Shochan_base175(SAONegotiator):
             )
 
 
-class Shochan_base200(SAONegotiator):
+class Shochan_base200(ANLNegotiator):
     """A simple negotiator that uses curve fitting to learn the reserved value.
 
     Args:
@@ -2561,7 +2597,12 @@ class Shochan_base200(SAONegotiator):
         self.nidx = 0
         assert self.opponent_ufun
         self.opponent_ufun.reserved_value = 0.0
-        # self.most
+        self.best_offer__ = None
+
+    def on_preferences_changed(self, changes):
+        assert self.ufun is not None
+        self.best_offer__ = self.ufun.best()
+        return super().on_preferences_changed(changes)
 
     def __call__(self, state: SAOState) -> SAOResponse:
         assert self.ufun and self.opponent_ufun
@@ -2702,7 +2743,7 @@ class Shochan_base200(SAONegotiator):
         # If there are no rational outcomes (i.e. our estimate of the opponent rv is very wrogn),
         # then just revert to offering our top offer
         if not self._rational:
-            return SAOResponse(ResponseType.REJECT_OFFER, self.ufun.best())
+            return SAOResponse(ResponseType.REJECT_OFFER, self.best_offer__)
         # find our aspiration level (value between 0 and 1) the higher the higher utility we require
         asp = aspiration_function(state.relative_time, 1.0, 0.0, self.e)
         # find the index of the rational outcome at the aspiration level (in the rational set of outcomes)

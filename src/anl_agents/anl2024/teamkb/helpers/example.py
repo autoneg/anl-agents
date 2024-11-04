@@ -6,13 +6,15 @@
 This code is free to use or update given that proper attribution is given to
 the authors and the ANAC 2024 ANL competition.
 """
+
 import random
 
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
+from anl.anl2024.negotiators.base import ANLNegotiator
 
 
-class AwesomeNegotiator(SAONegotiator):
+class AwesomeNegotiator(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """

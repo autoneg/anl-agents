@@ -33,7 +33,9 @@ def update_partner_reserved_value(self, state) -> None:
     nsteps__ = (
         self.nmi.n_steps
         if self.nmi.n_steps
-        else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+        else int(
+            (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6) + 0.5
+        )
     )
     std_dev = np.max(np.array([(nsteps__ - self.current_step) / nsteps__ - 0.6, 0.05]))
 

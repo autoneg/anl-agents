@@ -3,9 +3,17 @@ import random
 
 import numpy as np
 from negmas import SAOState
-from negmas.sao import SAONegotiator
+from anl.anl2024.negotiators.base import ANLNegotiator
 from sklearn.cluster import DBSCAN, KMeans
 from sklearn.preprocessing import MinMaxScaler
+from negmas.sao import SAOResponse
+from negmas import Outcome
+
+
+def safelog(x, *args, **kwargs):
+    if x < 1e-10:
+        return -3000.0
+    return math.log(x, *args, **kwargs)
 
 
 def initialize_DetReg(
@@ -28,7 +36,7 @@ def initialize_DetReg(
     return (time_low, time_high, initial_value, reserved_value)
 
 
-class GeneralNegotiationModel(SAONegotiator):
+class GeneralNegotiationModel(ANLNegotiator):
     def __init__(self, *args, **kwargs) -> None:
         """
         Initializes the general negotiation model.
@@ -39,9 +47,10 @@ class GeneralNegotiationModel(SAONegotiator):
         super(GeneralNegotiationModel, self).__init__(*args, **kwargs)
         self.opponent_times: list[float] = []
         self.opponent_utilities: list[float] = []
-        self.previous_offers: list[tuple[float, float]] = []
+        self.previous_offers: list[Outcome] = []
         self._past_opponent_rv = 0.0
         self._future_opponent_rv = 0
+        assert self.opponent_ufun is not None
         self.DetReg_tuple = initialize_DetReg(
             initial_value=self.opponent_ufun.worst(),
             reserved_value=self.opponent_ufun.best(),
@@ -53,8 +62,25 @@ class GeneralNegotiationModel(SAONegotiator):
         self.probability_distribution_hypotheses: dict[
             str, float
         ] = {}  # The probability distribution hypotheses for the learning process
+        self.opp_worst__, self.opp_best__ = None, None
+        self.DetReg_tuple = None
+        if self.opponent_ufun is not None:
+            self.opp_worst__ = self.opponent_ufun.worst()
+            self.opp_best__ = self.opponent_ufun.best()
+            self.DetReg_tuple = initialize_DetReg(
+                initial_value=self.opp_worst__, reserved_value=self.opp_best__
+            )
 
-    def __call__(self, state: SAOState):
+    def on_preferences_changed(self, changes):
+        if self.opponent_ufun is not None:
+            self.opp_worst__ = self.opponent_ufun.worst()
+            self.opp_best__ = self.opponent_ufun.best()
+            self.DetReg_tuple = initialize_DetReg(
+                initial_value=self.opp_worst__, reserved_value=self.opp_best__
+            )
+        return super().on_preferences_changed(changes)
+
+    def __call__(self, state: SAOState) -> SAOResponse:
         offer = state.current_offer
         if offer is not None:
             current_offer = self.save_offer(offer, state.relative_time)
@@ -93,8 +119,9 @@ class GeneralNegotiationModel(SAONegotiator):
                     self.update_hypothesis(current_offer=state.current_offer)
 
     def save_offer(self, current_offer, relative_time):
+        assert self.opponent_ufun is not None
         self.opponent_times.append(relative_time)
-        self.opponent_utilities.append(self.opponent_ufun(current_offer))
+        self.opponent_utilities.append(float(self.opponent_ufun(current_offer)))
         offer = (current_offer, relative_time, self.opponent_ufun.reserved_value)
         self.previous_offers.append(offer)
         self._past_opponent_rv = self.opponent_ufun.reserved_value
@@ -330,10 +357,10 @@ class GeneralNegotiationModel(SAONegotiator):
                 # pi*
                 numerator = p0 - pi
                 denominator = p0 - pix
-                pi_star = math.log(numerator // denominator)  # Base e log
+                pi_star = safelog(numerator // denominator)  # Base e log
 
                 # ti*
-                t_star = math.log(t // tix)
+                t_star = safelog(t // tix)
 
                 sum_of_tpi += pi_star * t_star
                 sum_of_ti += pow(t_star, 2)

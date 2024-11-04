@@ -8,17 +8,20 @@ the authors and the ANAC 2024 ANL competition.
 """
 
 import math
+from copy import deepcopy
 import random
 
 import numpy as np
+from anl.anl2024.negotiators.base import ANLNegotiator
+
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 
 
 __all__ = ["TAKAgent"]
 
 
-class TAKAgent(SAONegotiator):
+class TAKAgent(ANLNegotiator):
     rational_outcomes = tuple()
     negotiation_round: int = 0
     negotiation_duration: int = 0
@@ -67,6 +70,7 @@ class TAKAgent(SAONegotiator):
     def on_preferences_changed(self, changes):
         if self.ufun is None:
             return
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
 
         self.rational_outcomes = [
             _
@@ -76,12 +80,16 @@ class TAKAgent(SAONegotiator):
 
         self.partner_reserved_value = self.ufun.reserved_value
 
+        assert self.opponent_ufun is not None
         self.opponent_ufun.reserved_value = self.ufun.reserved_value
 
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         self.negotiation_duration = nsteps__
 

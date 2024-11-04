@@ -11,14 +11,15 @@ ver 1.1.1
 GRAND_FINAL
 """
 
+from anl.anl2024.negotiators.base import ANLNegotiator
 import numpy as np
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 
 __all__ = ["UOAgent"]
 
 
-class UOAgent(SAONegotiator):
+class UOAgent(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """
@@ -211,7 +212,10 @@ class UOAgent(SAONegotiator):
             nsteps__ = (
                 self.nmi.n_steps
                 if self.nmi.n_steps
-                else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+                else int(
+                    (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                    + 0.5
+                )
             )
             # assert self.nmi.n_steps is not None
             value = 1.0 - (1.0 - self.under) * ((self.step / nsteps__) ** 5)

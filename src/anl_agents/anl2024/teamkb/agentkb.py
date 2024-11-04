@@ -8,16 +8,17 @@ the authors and the ANAC 2024 ANL competition.
 """
 
 import random
-
 import numpy as np
+from anl.anl2024.negotiators.base import ANLNegotiator
+
 from negmas import pareto_frontier
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 
 __all__ = ["AgentKB"]
 
 
-class AgentKB(SAONegotiator):
+class AgentKB(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """
@@ -71,6 +72,7 @@ class AgentKB(SAONegotiator):
             self.rational_outcomes[_] for _ in self.frontier_indices
         ]
         self.my_frontier_utils = [_[0] for _ in self.frontier_utils]
+        self.best_offer__ = self.ufun.best()
 
         # Estimate the reservation value, as a first guess, the opponent has the same reserved_value as you
         # self.partner_reserved_value = self.ufun.reserved_value
@@ -127,7 +129,10 @@ class AgentKB(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         if self.step == nsteps__:
             if offer in self.rational_outcomes:
@@ -169,7 +174,10 @@ class AgentKB(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         if self.step == nsteps__:
             com_val = self.make_threshold_depend_on_reservation(m=self.m2, n=self.n2)
@@ -177,7 +185,7 @@ class AgentKB(SAONegotiator):
             choose_bid = self.get_target_bid(com_val, self.frontier_outcomes)
 
             if not choose_bid:
-                choose_bid = self.ufun.best()
+                choose_bid = self.best_offer__
 
             return choose_bid
 
@@ -192,7 +200,7 @@ class AgentKB(SAONegotiator):
                 else:
                     choose_bids = self.sort_bids_reverse(self.rational_outcomes)[:3]
                     if not choose_bids:
-                        return self.ufun.best()
+                        return self.best_offer__
 
                 return random.choice(choose_bids)
 
@@ -210,7 +218,7 @@ class AgentKB(SAONegotiator):
 
             # エラー対策
             if not sort_frontier_outcomes:
-                return self.ufun.best()
+                return self.best_offer__
 
             choose_bids = [_ for _ in sort_frontier_outcomes if self.ufun(_) > com_val]
 

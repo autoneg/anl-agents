@@ -1,13 +1,15 @@
 import random
 
 import numpy as np
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
+
+from anl.anl2024.negotiators.base import ANLNegotiator
 from scipy.optimize import curve_fit
 
 __all__ = ["Group6"]
 
 
-class Group6(SAONegotiator):
+class Group6(ANLNegotiator):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.offer_history = []
@@ -17,6 +19,7 @@ class Group6(SAONegotiator):
     def on_preferences_changed(self, changes) -> None:
         if self.ufun is None:
             return
+        self.best_offer__ = self.ufun.best()
         self.rational_outcomes = [
             o
             for o in self.nmi.outcome_space.enumerate_or_sample()
@@ -45,16 +48,17 @@ class Group6(SAONegotiator):
     def acceptance_strategy(self, current_offer, current_time):
         if not current_offer:
             return False
+        assert self.ufun is not None and self.opponent_ufun is not None
         offer_utility = self.ufun(current_offer)
         # Dynamic aspiration level based on negotiation time
         aspiration_level = self.aspiration_function(
-            current_time, self.ufun(self.ufun.best()), self.ufun.reserved_value, 1.2
+            current_time, self.ufun(self.best_offer__), self.ufun.reserved_value, 1.2
         )
         return offer_utility >= aspiration_level
 
     def bidding_strategy(self, current_time):
         aspiration_level = self.aspiration_function(
-            current_time, self.ufun(self.ufun.best()), self.ufun.reserved_value, 1.2
+            current_time, self.ufun(self.best_offer__), self.ufun.reserved_value, 1.2
         )
         potential_outcomes = [
             o for o in self.rational_outcomes if self.ufun(o) >= aspiration_level

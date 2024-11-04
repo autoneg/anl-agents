@@ -7,15 +7,16 @@ This code is free to use or update given that proper attribution is given to
 the authors and the ANAC 2024 ANL competition.
 """
 
+from anl.anl2024.negotiators.base import ANLNegotiator
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 
 __all__ = ["Group7"]
 
 # burada rakibin yaptığı tekliflerde yine rakibin utility'si saklanacak
 
 
-class Group7(SAONegotiator):
+class Group7(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """

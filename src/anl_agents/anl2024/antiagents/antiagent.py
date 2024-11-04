@@ -13,16 +13,17 @@ Team Members:
     5. Collin de Wit <c.r.dewit@students.uu.nl>
 """
 
+from anl.anl2024.negotiators.base import ANLNegotiator
 from negmas.outcomes import Outcome
+from negmas.sao import ResponseType, SAOResponse, SAOState
 from negmas.preferences import pareto_frontier
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
 from scipy.optimize import curve_fit
 from scipy.special import erf
 
 __all__ = ["AntiAgent"]
 
 
-class AntiAgent(SAONegotiator):
+class AntiAgent(ANLNegotiator):
     """
     Class to instantiate the implemented negotiating agent.
     """
@@ -39,7 +40,10 @@ class AntiAgent(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         self.deadline = nsteps__
         # all opponent offer timestamps
@@ -63,12 +67,10 @@ class AntiAgent(SAONegotiator):
         # estimate of opponent's assumed time dependent tactic concession exponent
         self.opp_e = None
         # rational pareto optimal outcomes and their own and opp utilities
-        pareto_outcomes = pareto_frontier(
-            (self.ufun, self.opponent_ufun), self.nmi.outcomes
-        )
+        oo = list(self.nmi.outcomes) if self.nmi.outcomes else []
+        pareto_outcomes = pareto_frontier((self.ufun, self.opponent_ufun), oo)  # type: ignore
         self.outcomes = [
-            (self.nmi.outcomes[index], utils[0], utils[1])
-            for utils, index in zip(*pareto_outcomes)
+            (oo[index], utils[0], utils[1]) for utils, index in zip(*pareto_outcomes)
         ]
         # sort rational pareto outcomes by own utility
         self.outcomes.sort(key=lambda outcome: outcome[1], reverse=True)
@@ -111,7 +113,8 @@ class AntiAgent(SAONegotiator):
         if not offer:
             return
         # opponent utility of the outcome
-        opp_util = self.opponent_ufun(offer)
+        assert self.opponent_ufun
+        opp_util = float(self.opponent_ufun(offer))
         # update opponent offer timestamps and own utilities
         self.opp_times.append(state.relative_time)
         self.opp_utils.append(opp_util)
@@ -216,12 +219,13 @@ class AntiAgent(SAONegotiator):
         if not offer:
             return False
         # own utility of the outcome
-        own_util = self.ufun(offer)
+        assert self.ufun
+        own_util = float(self.ufun(offer))
         # current own expected utility
         expected_util, _ = self.optimal_bids[self.bids_left]
         # set the acceptance threshold at our current expected utility
         # but if thats higher than what we gonna offer next lower it to that amount
-        threshold = min(expected_util, self.ufun(self.current_offer))
+        threshold = min(expected_util, float(self.ufun(self.current_offer)))
         # accept the offer if it is better than the utility threshold
         accept = own_util > threshold
         return accept
@@ -233,7 +237,8 @@ class AntiAgent(SAONegotiator):
         # current optimal outcome to offer
         _, optimal_offer = self.optimal_bids[self.bids_left]
         # keep our bidding curve (not strictly) monotonic
-        if self.ufun(optimal_offer) < self.ufun(self.current_offer):
+        assert self.ufun
+        if float(self.ufun(optimal_offer)) < float(self.ufun(self.current_offer)):
             # go with the optimal offer only if it is a new needed concession
             self.current_offer = optimal_offer
         return self.current_offer

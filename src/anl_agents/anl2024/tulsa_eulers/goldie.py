@@ -7,12 +7,15 @@ This code is free to use or update given that proper attribution is given to
 the authors and the ANAC 2024 ANL competition.
 """
 
+from copy import deepcopy
 import random
 
 import numpy as np
+from anl.anl2024.negotiators.base import ANLNegotiator
+
 from negmas.outcomes import Outcome
 from negmas.preferences import PresortingInverseUtilityFunction
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 from scipy.optimize import curve_fit
 
 __all__ = ["Goldie"]
@@ -23,7 +26,7 @@ def aspiration_function(t, mx, rv, e):
     return (mx - rv) * (1.0 - np.power(t, e)) + rv
 
 
-class Goldie(SAONegotiator):
+class Goldie(ANLNegotiator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -49,6 +52,9 @@ class Goldie(SAONegotiator):
         self.opponent_utilities = []
         self.past_opponent_rv = 0.0
         self.rational = []
+
+    def on_preferences_changed(self, changes):
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
 
     def __call__(self, state: SAOState) -> SAOResponse:
         # The main implementation of the MiCRO strategy

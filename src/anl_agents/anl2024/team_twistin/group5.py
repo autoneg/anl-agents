@@ -16,15 +16,22 @@ import math
 import random
 from operator import itemgetter
 
+from anl.anl2024.negotiators.base import ANLNegotiator
 import numpy as np
 from matplotlib import pyplot as plt
 from negmas.outcomes import Outcome
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 
 __all__ = ["Group5"]
 
 
-class Group5(SAONegotiator):
+def safelog(x, *args, **kwargs):
+    if x < 1e-10:
+        return -3000.0
+    return math.log(x, *args, **kwargs)
+
+
+class Group5(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """
@@ -91,7 +98,10 @@ class Group5(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         self.deadline = nsteps__  # Only takes into account a step limit, not time limit. Should it be expanded?
         self.opponent_rv_range = [0.0, 1.0]
@@ -201,7 +211,10 @@ class Group5(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         if nsteps__ == state.step:
             return True
@@ -232,7 +245,10 @@ class Group5(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         time_remaining = nsteps__ - state.step
         if state.relative_time > 0.9:
@@ -307,7 +323,10 @@ class Group5(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         if self.first_bidder:
             time = state.step / nsteps__
@@ -335,7 +354,10 @@ class Group5(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         if self.first_bidder:
             time = state.step / nsteps__
@@ -476,12 +498,12 @@ class Group5(SAONegotiator):
             # assume there is a mistake in the paper, I use t_i instead of state.step.
             eq6_top = sum(
                 [
-                    math.log((offer0 - offer_i) / (offer0 - rv_x)) * math.log(t_i / t_x)
+                    safelog((offer0 - offer_i) / (offer0 - rv_x)) * safelog(t_i / t_x)
                     for t_i, offer_i in proper_offer_history[1:]
                 ]
             )
             eq6_bottom = sum(
-                [math.log(t_i / t_x) ** 2 for t_i, _ in proper_offer_history[1:]]
+                [safelog(t_i / t_x) ** 2 for t_i, _ in proper_offer_history[1:]]
             )
             b = eq6_top / eq6_bottom
 

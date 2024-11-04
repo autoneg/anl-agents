@@ -9,13 +9,14 @@ the authors and the ANAC 2024 ANL competition.
 
 import random
 
+from anl.anl2024.negotiators.base import ANLNegotiator
 import numpy as np
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
+from negmas.sao import ResponseType, SAOResponse, SAOState
 
 __all__ = ["KosAgent"]
 
 
-class KosAgent(SAONegotiator):
+class KosAgent(ANLNegotiator):
     # 変数の初期設定
     step = 0
     current_time = 0
@@ -26,6 +27,7 @@ class KosAgent(SAONegotiator):
     min_value = 0
     allowable_line = 0
     current_value = 0
+    best_offer__ = None
 
     def on_preferences_changed(self, changes) -> None:
         # 初期変数の設定
@@ -49,6 +51,7 @@ class KosAgent(SAONegotiator):
 
         if self.ufun is None:
             return
+        self.best_offer__ = self.ufun.best()
 
     def __call__(self, state: SAOState) -> SAOResponse:
         # データの更新
@@ -120,7 +123,10 @@ class KosAgent(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         if nsteps__ - self.step == 1:
             if self.ufun(offer) > self.ufun.reserved_value:
@@ -133,7 +139,9 @@ class KosAgent(SAONegotiator):
         # 特別処理としてaとbの値が100ならば一番よい選択肢を出力(該当の範囲内に選択肢がなかった場合)
         assert self.ufun is not None
         if a == 100 and b == 100:
-            result_outcome = self.ufun.best()
+            if self.best_offer__ is None:
+                self.best_offer__ = self.ufun.best()
+            result_outcome = self.best_offer__
             return result_outcome
 
         self.choose_box = []
@@ -172,7 +180,10 @@ class KosAgent(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         # assert self.nmi.n_steps is not None
         self.current_time = self.step / nsteps__

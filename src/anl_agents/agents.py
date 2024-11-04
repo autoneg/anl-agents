@@ -5,7 +5,6 @@ from typing import Literal, overload
 
 from negmas import SAONegotiator
 from negmas.helpers import get_class, get_full_type_name
-from negmas.situated import Agent
 
 import anl_agents.anl2024 as anl2024
 from anl_agents.anl2024.antiagents.antiagent import AntiAgent
@@ -30,6 +29,7 @@ from anl_agents.anl2024.team_twistin.group5 import Group5
 from anl_agents.anl2024.teamkb.agentkb import AgentKB
 from anl_agents.anl2024.tipsonly.katla_nir_aent import KatlaNirAgent
 from anl_agents.anl2024.tulsa_eulers.goldie import Goldie
+
 
 __all__ = ["get_agents", "FAILING_AGENTS"]
 
@@ -73,7 +73,7 @@ def get_agents(
     top_only: int | float | None = None,
     ignore_failing=False,
     as_class: Literal[True] = True,
-) -> tuple[type[Agent], ...]:
+) -> tuple[type[SAONegotiator], ...]:
     ...
 
 
@@ -87,7 +87,7 @@ def get_agents(
     top_only: int | float | None = None,
     ignore_failing=False,
     as_class: bool = True,
-) -> tuple[type[Agent] | str, ...]:
+) -> tuple[type[SAONegotiator] | str, ...]:
     """
     Gets agent classes/full class names for a version which can either be a competition year (int) or "contrib".
 
@@ -126,7 +126,7 @@ def get_agents(
                 _ for _ in results if get_full_type_name(_) not in FAILING_AGENTS.keys()
             ]
         return tuple(results)
-    classes: tuple[str | type[Agent], ...] = tuple()  # type: ignore
+    classes: tuple[str | type[SAONegotiator], ...] = tuple()  # type: ignore
     track = track.lower()
     if isinstance(version, int) and version == 2024:
         if track in ("advantage",) and winners_only:

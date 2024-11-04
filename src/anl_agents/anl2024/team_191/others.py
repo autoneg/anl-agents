@@ -7,18 +7,19 @@ This code is free to use or update given that proper attribution is given to
 the authors and the ANAC 2024 ANL competition.
 """
 
-import math
 import random
-
 import numpy as np
+from anl.anl2024.negotiators.base import ANLNegotiator
+import math
+
 from negmas.outcomes import Outcome
+from negmas.sao import ResponseType, SAOResponse, SAOState
 from negmas.preferences import pareto_frontier
-from negmas.sao import ResponseType, SAONegotiator, SAOResponse, SAOState
 
 __all__ = ["AwesomeNegotiator", "IngoNegotiator"]
 
 
-class AwesomeNegotiator(SAONegotiator):
+class AwesomeNegotiator(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """
@@ -108,7 +109,10 @@ class AwesomeNegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         end_game = state.relative_time >= 0.97 or state.step + 1 == nsteps__
 
@@ -163,7 +167,7 @@ class AwesomeNegotiator(SAONegotiator):
         ]
 
 
-class IngoNegotiator(SAONegotiator):
+class IngoNegotiator(ANLNegotiator):
     """
     Your agent code. This is the ONLY class you need to implement
     """
@@ -238,7 +242,10 @@ class IngoNegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         self.total_steps = nsteps__
 
@@ -313,7 +320,10 @@ class IngoNegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         end_game = state.relative_time >= 0.97 or state.step + 1 == nsteps__
 
@@ -347,7 +357,10 @@ class IngoNegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         percentage_complete = state.step / nsteps__
         if percentage_complete < 0.79:
@@ -384,7 +397,10 @@ class IngoNegotiator(SAONegotiator):
         nsteps__ = (
             self.nmi.n_steps
             if self.nmi.n_steps
-            else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+            else int(
+                (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                + 0.5
+            )
         )
         chaos_threshold = 0.3 + (state.step / nsteps__)
         # Get all possible offers
@@ -579,7 +595,10 @@ class IngoNegotiator(SAONegotiator):
             nsteps__ = (
                 self.nmi.n_steps
                 if self.nmi.n_steps
-                else int(self.nmi.state.time / self.nmi.state.relative_time + 0.5)
+                else int(
+                    (self.nmi.state.time + 1e-6) / (self.nmi.state.relative_time + 1e-6)
+                    + 0.5
+                )
             )
             self.discount_ratio = (self.current_step / nsteps__) ** self.lambda_opp
 
@@ -686,50 +705,3 @@ class IngoNegotiator(SAONegotiator):
         # print(points_with_distance)
         return points_with_distance
         # plotter(line_segments, points, least_lines)
-
-
-# if you want to do a very small test, use the parameter small=True here. Otherwise, you can use the default parameters.
-if __name__ == "__main__":
-    from helpers.runner import run_a_tournament
-    import matplotlib.pyplot as plt
-    from matplotlib.collections import LineCollection
-
-    run_a_tournament(IngoNegotiator, small=True, debug=True)
-    # run_a_tournament(AwesomeNegotiator, small=True)
-
-    def plotter(line_segments, points, additional_line_segments):
-        # Extract coordinates from line segments
-        lines = [list(segment) for segment in line_segments]
-
-        # Create a LineCollection from the line segments
-        lc = LineCollection(lines, linewidths=0.5)
-
-        # Create a plot
-        fig, ax = plt.subplots(figsize=(15, 8))
-
-        # Add the LineCollection to the plot
-        ax.add_collection(lc)
-
-        # Set limits
-        ax.autoscale()
-        ax.margins(0.1)
-
-        # Points
-        x, y = zip(*points)
-        ax.scatter(x, y, color="red")
-
-        # Extract coordinates from additional line segments
-        additional_lines = [list(segment) for segment in additional_line_segments]
-
-        # Create a LineCollection for the additional line segments in red
-        lc_red = LineCollection(additional_lines, colors="red")
-
-        # Add the red LineCollection to the plot
-        ax.add_collection(lc_red)
-
-        # Plot each point
-        for segment in line_segments:
-            for point in segment:
-                plt.plot(point[0], point[1], "go")
-
-        plt.show()

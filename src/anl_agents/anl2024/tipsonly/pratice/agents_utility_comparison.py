@@ -12,6 +12,12 @@ from scipy import integrate
 """
 
 
+def safelog(x, *args, **kwargs):
+    if x < 1e-10:
+        return -3000.0
+    return math.log(x, *args, **kwargs)
+
+
 def compare_utilities(
     self_ufun: UFun, other_ufun: UFun, self_outcome_spce: OutcomeSpace
 ) -> float:
@@ -130,11 +136,11 @@ def beliefs(
     for i, value in enumerate(possible_values):
         agent1_utility = self_ufun(value)
         agent2_prob = other_beliefs[i]
-        agent1_entropy += -agent2_prob * math.log(agent1_utility)
+        agent1_entropy += -agent2_prob * safelog(agent1_utility)
 
         agent2_utility = other_ufun(value)
         agent1_prob = self_beliefs[i]
-        agent2_entropy += -agent1_prob * math.log(agent2_utility)
+        agent2_entropy += -agent1_prob * safelog(agent2_utility)
     return -agent1_entropy, -agent2_entropy
 
 

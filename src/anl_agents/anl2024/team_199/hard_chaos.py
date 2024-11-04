@@ -1,7 +1,10 @@
-import numpy as np
-from negmas import ResponseType
-from negmas.sao import SAONegotiator, SAOResponse
 from scipy.optimize import curve_fit
+from negmas.sao import SAOResponse
+from negmas import ResponseType
+from copy import deepcopy
+from anl.anl2024.negotiators.base import ANLNegotiator
+from negmas import Outcome
+import numpy as np
 
 __all__ = ["HardChaosNegotiator"]
 
@@ -11,7 +14,7 @@ def aspiration_function(t, mx, rv, e):
     return (mx - rv) * (1.0 - np.power(t, e)) + rv
 
 
-class HardChaosNegotiator(SAONegotiator):
+class HardChaosNegotiator(ANLNegotiator):
     def __init__(
         self, *args, e=8.0, **kwargs
     ):  # Increase the exponent to make the negotiation tougher
@@ -21,6 +24,12 @@ class HardChaosNegotiator(SAONegotiator):
         self.last_offer = None
         self.opponent_times = []
         self.opponent_utilities = []
+        self.best_offer__ = None
+
+    def on_preferences_changed(self, changes):
+        assert self.ufun is not None
+        self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
+        self.best_offer__ = self.ufun.best()
 
     def update_opponent_model(self, offer, relative_time):
         assert self.opponent_ufun is not None
@@ -55,7 +64,7 @@ class HardChaosNegotiator(SAONegotiator):
             1.0 - np.power(t, self.e)
         ) + 0.1  # Start with a higher aspiration and end lower
 
-    def generate_offer(self, relative_time) -> tuple:
+    def generate_offer(self, relative_time) -> Outcome | None:
         assert self.ufun is not None
         if not self._rational:
             self.populate_rational_outcomes()
@@ -65,7 +74,7 @@ class HardChaosNegotiator(SAONegotiator):
         for outcome, my_util, opp_util in self._rational:
             if my_util >= aspiration_level:
                 return outcome
-        return self.ufun.best()
+        return self.best_offer__
 
     def populate_rational_outcomes(self):
         assert self.opponent_ufun is not None
@@ -79,7 +88,7 @@ class HardChaosNegotiator(SAONegotiator):
 
     def is_acceptable(self, offer, relative_time) -> bool:
         assert self.ufun is not None
-        best_outcome_utility = self.ufun(self.ufun.best())
+        best_outcome_utility = self.ufun(self.best_offer__)
         current_aspiration = (
             self.aspiration_function(relative_time)
             * (best_outcome_utility - self.ufun.reserved_value)
