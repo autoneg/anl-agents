@@ -18,13 +18,13 @@ has the following parameters:
 
 - version: Either a competition year (2024, ...) or the value "contrib" for all other agents. You can also pass "all" or "any" to get all agents.
 - track: The track (advantage, utility, welfare, nash, kalai, kalai-smorodinsky)
-- qualified_only: If true, only agents that were submitted to SCML and ran in the qualifications round will be
+- qualified_only: If true, only agents that were submitted to ANL and ran in the qualifications round will be
   returned.
-- finalists_only: If true, only agents that were submitted to SCML and passed qualifications will be
+- finalists_only: If true, only agents that were submitted to ANL and passed qualifications will be
   returned.
-- winners_only: If true, only winners of SCML (the given version) will be returned.
+- winners_only: If true, only winners of ANL (the given version) will be returned.
 - top_only: Either a fraction of finalists or the top n finalists with highest scores in the finals of
-  SCML.
+  ANL.
 - as_class: If true, the agent classes will be returned otherwise their full class names.
 
 For example, to get the top 10% of the "advantage" track finalists in year 2024 as strings, you can use:
