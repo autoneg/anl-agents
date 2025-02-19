@@ -58,8 +58,7 @@ def get_agents(
     top_only: int | float | None = None,
     ignore_failing=False,
     as_class: Literal[False] = False,
-) -> tuple[str, ...]:
-    ...
+) -> tuple[str, ...]: ...
 
 
 @overload
@@ -73,8 +72,7 @@ def get_agents(
     top_only: int | float | None = None,
     ignore_failing=False,
     as_class: Literal[True] = True,
-) -> tuple[type[SAONegotiator], ...]:
-    ...
+) -> tuple[type[SAONegotiator], ...]: ...
 
 
 def get_agents(
@@ -185,7 +183,7 @@ def get_agents(
                 HardChaosNegotiator,
                 AgentNyan,
             )
-        elif track in ("utility",) and finalists_only:
+        elif track in ("utility", "welfare") and finalists_only:
             classes = (
                 UOAgent,
                 Shochan,
@@ -198,7 +196,7 @@ def get_agents(
                 BidBot,
                 AgentNyan,
             )
-        elif track in ("welfare") and qualified_only:
+        elif track in ("welfare",) and qualified_only:
             classes = (
                 Nayesian2,
                 INegotiator,
@@ -223,7 +221,7 @@ def get_agents(
                 TAKAgent,
                 AgentKB,
             )
-        elif track in ("nash") and qualified_only:
+        elif track in ("nash", "kalai", "kalai-smorodonisky") and qualified_only:
             classes = (
                 CARCAgent,
                 Nayesian2,
@@ -248,7 +246,15 @@ def get_agents(
                 AgentKB,
                 KatlaNirAgent,
             )
-        elif track in ("advantage") and qualified_only:
+        elif (
+            track
+            in (
+                "advantage",
+                "welfare",
+                "utility",
+            )
+            and qualified_only
+        ):
             classes = (
                 AgentRenting2024,
                 AntiAgent,

@@ -143,7 +143,7 @@ class Nayesian2(ANLNegotiator):
         self.recieved_offers = 0
         # print('ufun_initilize')
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         """
         Called to (counter-)offer.
 

@@ -89,7 +89,7 @@ class INegotiator(ANLNegotiator):
         self.opponent_history = []
         self.bidding_initializations()
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         """
         Called to (counter-)offer.
 

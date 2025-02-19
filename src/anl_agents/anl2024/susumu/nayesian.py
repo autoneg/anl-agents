@@ -76,7 +76,7 @@ class Nayesian(ANLNegotiator):
         self.acceptable_utility = 1
         # print('ufun_initilize')
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         """
         Called to (counter-)offer.
 

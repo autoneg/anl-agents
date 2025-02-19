@@ -67,7 +67,7 @@ class Group6(ANLNegotiator):
             potential_outcomes = self.rational_outcomes
         return random.choice(potential_outcomes)
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         current_offer = state.current_offer
         current_time = state.relative_time
         if current_offer:

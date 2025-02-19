@@ -53,7 +53,7 @@ class KosAgent(ANLNegotiator):
             return
         self.best_offer__ = self.ufun.best()
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         # データの更新
         self.update(state)
         offer = state.current_offer

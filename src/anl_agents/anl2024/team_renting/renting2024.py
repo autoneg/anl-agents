@@ -123,7 +123,7 @@ class AgentRenting2024(ANLNegotiator):
         self.last_bid = None
         self.flat_line = False
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         """
         Wrapper that captures info for the rv predictor
         """

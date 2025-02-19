@@ -37,7 +37,7 @@ class BaseAgent(SAONegotiator, ABC):
         return self.opponent_ufun
 
     @final
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         if state.current_offer is None:
             # start negotiation
             outcome = self.get_first_offer()

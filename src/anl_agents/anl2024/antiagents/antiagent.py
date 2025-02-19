@@ -79,7 +79,7 @@ class AntiAgent(ANLNegotiator):
         # current outcome to offer
         self.current_offer = self.ufun.best()
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         """
         Called to accept / reject current offer and (counter-)offer.
         Args:

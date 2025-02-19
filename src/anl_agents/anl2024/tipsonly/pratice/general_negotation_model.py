@@ -80,7 +80,7 @@ class GeneralNegotiationModel(ANLNegotiator):
             )
         return super().on_preferences_changed(changes)
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         offer = state.current_offer
         if offer is not None:
             current_offer = self.save_offer(offer, state.relative_time)

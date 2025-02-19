@@ -33,7 +33,7 @@ class MyNegotiator(ANLNegotiator):
         self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
         self.best_offer__ = self.ufun.best()
 
-    def __call__(self, state: SAOState):
+    def __call__(self, state: SAOState, dest: str | None = None):
         self.update_reserved_value(state.current_offer, state.relative_time)
         # Run the acceptance strategy, and if the offer received is acceptable, accept it
         if self.is_acceptable(state.current_offer, state.relative_time):

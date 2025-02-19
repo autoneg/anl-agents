@@ -40,7 +40,7 @@ class MyNegotiator(ANLNegotiator):
             if self.ufun(_) > self.ufun.reserved_value
         ]
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         """
         Called to (counter-)offer.
 

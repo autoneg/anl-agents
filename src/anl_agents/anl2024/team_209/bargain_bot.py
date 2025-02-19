@@ -85,7 +85,7 @@ class BargainBot(ANLNegotiator):
             # if there's no nash equilibrium, go back to single feature schema for RV prediction
             self.rv_feature_mode = 0
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         """
         Called to (counter-)offer.
 

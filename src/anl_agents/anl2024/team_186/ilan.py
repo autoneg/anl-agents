@@ -42,7 +42,7 @@ class Ilan(ANLNegotiator):
         self.best_offer__ = self.ufun.best()
         return super().on_preferences_changed(changes)
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         self.update_reserved_value(state.current_offer, state.relative_time)
         if self.is_acceptable(state.current_offer, state.relative_time):
             return SAOResponse(ResponseType.ACCEPT_OFFER, state.current_offer)

@@ -253,7 +253,7 @@ class KatlaNirAgent(ANLNegotiator):
         # Estimate the reservation value, as a first guess, the opponent has the same reserved_value as you
         self.partner_reserved_value = self.ufun.reserved_value
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         offer = state.current_offer
 
         if self.ufun is None:

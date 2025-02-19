@@ -121,7 +121,7 @@ class UOAgent(ANLNegotiator):
         # self.partner_reserved_value = self.ufun.reserved_value
         self.partner_reserved_value = 1.0
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         """
         Called to (counter-)offer.
 

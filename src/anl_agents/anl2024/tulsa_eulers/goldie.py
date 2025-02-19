@@ -56,7 +56,7 @@ class Goldie(ANLNegotiator):
     def on_preferences_changed(self, changes):
         self.private_info["opponent_ufun"] = deepcopy(self.opponent_ufun)
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         # The main implementation of the MiCRO strategy
         assert self.ufun
         # initialize the sorter (This should better be done in on_negotiation_start() to allow for reuse but this is not needed in ANL)

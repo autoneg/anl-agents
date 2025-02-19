@@ -109,7 +109,7 @@ class Group5(ANLNegotiator):
         self.estimation_areas = list()
         self.first_bidder = self.nmi.negotiator_index(self.id) == 0
 
-    def __call__(self, state: SAOState) -> SAOResponse:
+    def __call__(self, state: SAOState, dest: str | None = None) -> SAOResponse:
         """
         Called to (counter-)offer.
 
