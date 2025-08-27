@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from inspect import ismodule
-from typing import Literal, overload
+from typing import overload, Literal
 
 from anl2025 import ANL2025Negotiator
 from anl_agents.anl2025.carc.carc2025 import CARC2025
@@ -63,7 +63,7 @@ FAILING_AGENTS = {
 
 
 @overload
-def get_agents(
+def get_agents(  # type: ignore
     version: str | int,
     *,
     track: str = "advantage",
@@ -87,7 +87,7 @@ def get_agents(
     top_only: int | float | None = None,
     ignore_failing=False,
     as_class: Literal[True] = True,
-) -> tuple[type[SAONegotiator], ...]: ...
+) -> tuple[type[SAONegotiator] | type[ANL2025Negotiator], ...]: ...
 
 
 def get_agents(
@@ -100,7 +100,7 @@ def get_agents(
     top_only: int | float | None = None,
     ignore_failing=False,
     as_class: bool = True,
-) -> tuple[type[SAONegotiator] | ANL2025Negotiator | str, ...]:
+) -> tuple[type[SAONegotiator] | type[ANL2025Negotiator] | str, ...]:
     """
     Gets agent classes/full class names for a version which can either be a competition year (int) or "contrib".
 
@@ -139,7 +139,7 @@ def get_agents(
                 _ for _ in results if get_full_type_name(_) not in FAILING_AGENTS.keys()
             ]
         return tuple(results)
-    classes: tuple[str | type[SAONegotiator], ...] = tuple()  # type: ignore
+    classes: tuple[str | type[ANL2025Negotiator] | type[SAONegotiator], ...] = tuple()
     track = track.lower()
     if isinstance(version, int) and version == 2024:
         if track in ("advantage",) and winners_only:
@@ -360,7 +360,7 @@ def get_agents(
         raise ValueError(
             f"The version {version} is unknown. Valid versions are 2019, 2020 (as ints), 'contrib' as a string"
         )
-    classes: tuple[type[SAONegotiator] | str, ...]
+    classes: tuple[type[SAONegotiator] | type[ANL2025Negotiator] | str, ...]
     if as_class:
         classes = tuple(get_class(_) for _ in classes)
     else:
