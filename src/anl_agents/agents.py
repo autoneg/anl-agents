@@ -3,10 +3,25 @@ from __future__ import annotations
 from inspect import ismodule
 from typing import Literal, overload
 
+from anl2025 import ANL2025Negotiator
+from anl_agents.anl2025.carc.carc2025 import CARC2025
+from anl_agents.anl2025.team_156.ozu import OzUAgent
+from anl_agents.anl2025.team_271.agents import RUFL
+from anl_agents.anl2025.team_273.probabot import ProbaBot
+from anl_agents.anl2025.team_278.smart import SmartNegotiator
+from anl_agents.anl2025.team_291.jeem import JeemNegotiator
+from anl_agents.anl2025.team_305.agent import UfunATAgent
+from anl_agents.anl2025.tema_kdy.kdy import KDY
+from anl_agents.anl2025.chongqingagent.astrat3m import Astrat3m
+from anl_agents.anl2025.university_of_tehran.sac import SacAgent
+from anl_agents.anl2025.team_300.wagent import Wagent
+from anl_agents.anl2025.team_298.a4e import A4E
+
 from negmas import SAONegotiator
 from negmas.helpers import get_class, get_full_type_name
 
 import anl_agents.anl2024 as anl2024
+import anl_agents.anl2025 as anl2025
 from anl_agents.anl2024.antiagents.antiagent import AntiAgent
 from anl_agents.anl2024.carc.carcagent import CARCAgent
 from anl_agents.anl2024.susumu.nayesian2 import Nayesian2
@@ -85,12 +100,12 @@ def get_agents(
     top_only: int | float | None = None,
     ignore_failing=False,
     as_class: bool = True,
-) -> tuple[type[SAONegotiator] | str, ...]:
+) -> tuple[type[SAONegotiator] | ANL2025Negotiator | str, ...]:
     """
     Gets agent classes/full class names for a version which can either be a competition year (int) or "contrib".
 
     Args:
-        version: Either a competition year (2019, 2020, 2021, ....) or the following special values:
+        version: Either a competition year (2024, 2025, ...) or the following special values:
 
                  - "contrib" for agents contributed directly to the repository not through ANAC's anl Competition
                  - "all"/"any" for all agents
@@ -107,7 +122,7 @@ def get_agents(
     """
     if version in ("all", "any"):
         results = []
-        for v in (2024, "contrib"):
+        for v in (2024, 2025, "contrib"):
             results += list(
                 get_agents(  # type: ignore
                     v,
@@ -286,6 +301,55 @@ def get_agents(
                         [eval(f"anl2024.{_}.{a}") for a in eval(f"anl2024.{_}").__all__]
                         for _ in dir(anl2024)
                         if ismodule(eval(f"anl2024.{_}"))
+                    ),
+                    [],
+                )
+            )
+    elif isinstance(version, int) and version == 2025:
+        if winners_only:
+            classes = (RUFL, SacAgent, UfunATAgent)
+        elif finalists_only:
+            classes = (
+                SacAgent,
+                ProbaBot,
+                RUFL,
+                KDY,
+                JeemNegotiator,
+                Astrat3m,
+                A4E,
+                OzUAgent,
+                SmartNegotiator,
+                CARC2025,
+                UfunATAgent,
+                Wagent,
+            )
+        elif qualified_only:
+            classes = (
+                anl2025.carc.MAIN_AGENT,
+                anl2025.chongqingagent.MAIN_AGENT,
+                anl2025.eoh.MAIN_AGENT,
+                anl2025.natures.MAIN_AGENT,
+                anl2025.team_156.MAIN_AGENT,
+                anl2025.team_271.MAIN_AGENT,
+                anl2025.team_273.MAIN_AGENT,
+                anl2025.team_278.MAIN_AGENT,
+                anl2025.team_287.MAIN_AGENT,
+                anl2025.team_291.MAIN_AGENT,
+                anl2025.team_298.MAIN_AGENT,
+                anl2025.team_300.MAIN_AGENT,
+                anl2025.team_305.MAIN_AGENT,
+                anl2025.team_307.MAIN_AGENT,
+                anl2025.team_309.MAIN_AGENT,
+                anl2025.tema_kdy.MAIN_AGENT,
+                anl2025.university_of_tehran.MAIN_AGENT,
+            )
+        else:
+            classes = tuple(
+                sum(
+                    (
+                        [eval(f"anl2025.{_}.{a}") for a in eval(f"anl2025.{_}").__all__]
+                        for _ in dir(anl2025)
+                        if ismodule(eval(f"anl2025.{_}"))
                     ),
                     [],
                 )

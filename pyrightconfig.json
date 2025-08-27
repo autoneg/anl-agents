@@ -2,7 +2,9 @@
 	"venvPath": "/Users/yasser/myvenvs",
 	"venv": "anl-agents",
 	"extraPaths": [
-		"/Users/yasser/code/projects/negmas"
+		"/Users/yasser/code/projects/negmas",
+		"/Users/yasser/code/projects/anl",
+		"/Users/yasser/code/projects/anl2025"
 	],
 	"useLibraryCodeForTypes": true
 }

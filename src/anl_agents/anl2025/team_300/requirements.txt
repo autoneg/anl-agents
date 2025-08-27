@@ -1,0 +1,11 @@
+numpy==1.26.4
+anl2025==0.1.4
+anl_agents==0.1.1
+joblib==1.5.0
+matplotlib==3.10.3
+negmas==0.11.3
+pandas==2.2.3
+rich==14.0.0
+tqdm==4.67.1
+scipy==1.15.3
+

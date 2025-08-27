@@ -33,6 +33,20 @@ For example, to get the top 10% of the "advantage" track finalists in year 2024 
 get_agents(version=2024, track="advantage", finalists_only=True, top_only=0.1, as_class=False)
 ```
 
+
+# Winners of the ANL 2025 Competition
+
+- First Place (tie): RUFL
+- First Place (tie): SacAgent
+- Third Place: UfunAtAgent
+
+You can get these agents after installing anl-agents by running:
+
+```bash
+get_agents(2025, winners_only=True)
+```
+
+
 # Winners of the ANL 2024 Competition
 
 ## Advantage Track
