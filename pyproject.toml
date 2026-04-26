@@ -1,0 +1,58 @@
+[project]
+name = "anl-agents"
+version = "0.1.2"
+description = "Agents submitted to the ANL league of ANAC 2025 since 2024"
+readme = "README.md"
+requires-python = "~=3.11.0"
+authors = [
+    { name = "Yasser Mohammad", email = "yasserfarouk@gmail.com" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+]
+dependencies = ["anl>=0.1.13", "anl2025>=0.1.6", "tensorflow", "torch", "numpy"]
+
+[build-system]
+# requires = ["hatchling"]
+# build-backend = "hatchling.build"
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "hypothesis"
+]
+
+[tool.flake8]
+exclude = ["docs"]
+
+[tool.pytest.ini_options]  # pytest config
+# addopts = "--doctest-modules"  # Example: If you use doctest
+# testpaths = ["tests"]         # Example: If you have a tests directory
+collect_ignore = ['setup.py']
+
+[tool.mypy]
+warn_unused_configs = false
+warn_incomplete_stub = true
+check_untyped_defs = true
+python_version = "3.11"
+strict_optional = false
+ignore_missing_imports = false
+
+[[tool.mypy.overrides]]  # mypy overrides
+module = ["setup.*"]
+check_untyped_defs = false
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[dependency-groups]
+dev = [
+    "twine>=6.1.0",
+]

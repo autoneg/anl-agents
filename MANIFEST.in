@@ -1,0 +1,8 @@
+include README.md
+recursive-include src *.*
+recursive-include src/anl_agents *.*
+# recursive-include anl_agents *.*
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude __pycache__/*
+global-exclude *DS_Store
