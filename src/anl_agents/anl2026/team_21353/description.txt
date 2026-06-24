@@ -1,0 +1,15 @@
+ANL 2026 agent optimising Score = Advantage + Concealing.
+
+    Advantage: time-based linear concession with hard floor — never accept
+      below MIN_FRAC of our utility range above reserved value.
+
+    Concealing: issue-value frequency balancing. We track which values we have
+      offered for each issue and deliberately pick bids that use
+      underrepresented values. This keeps the opponent's frequency model flat
+      (close to uniform), minimising its Kendall-tau correlation with our
+      true utility function.
+
+    Opponent model: frequency-based with inverse-entropy issue weighting.
+      Issues where the opponent concentrates on few values (low entropy) are
+      presumed more important; we weight them higher. This improves our
+      Kendall-tau match with their true utility.

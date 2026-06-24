@@ -1,0 +1,11 @@
+numpy<2
+scipy
+negmas>=0.15.4
+pyyaml
+chex
+elements>=3.19.1
+ninjax>=3.5.1
+optax
+jax[cpu]==0.4.33
+portal>=3.5.0
+colored_traceback

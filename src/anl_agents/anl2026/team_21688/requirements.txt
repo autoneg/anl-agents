@@ -1,0 +1,9 @@
+numpy
+scipy
+math
+copy
+random
+negmas
+anl2025
+itertools
+types

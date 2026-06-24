@@ -1,0 +1,302 @@
+agent:
+  ac_grads: false
+  action_context: {layers: 2, units: 16}
+  advnorm: {impl: none, limit: 1e-08, rate: 0.01}
+  anl_core:
+    action_encoder: {embed_units: 32, heads: 4, layers: 2, num_seeds: 2, 
+        token_units: 128}
+    action_units: 256
+    obs_encoder: {embed_units: 32, ffup: 2, heads: 4, layers: 2, num_seeds: 4, 
+        obs_units: 512, token_units: 128, transformer_layers: 1}
+    osi: {embed_units: 32, hidden: 256, layers: 2, outscale: 1.0}
+  anl_fixed:
+    landscape: {d_model: 32, heads: 4, latent_units: 256, num_seeds: 4, 
+        token_layers: 1}
+  conhead: {act: silu, layers: 1, norm: rms, output: binary, outscale: 1.0, 
+      units: 1024, winit: trunc_normal_in}
+  contdisc: true
+  dec:
+    simple:
+      act: silu
+      bspace: 8
+      depth: 64
+      kernel: 5
+      layers: 2
+      mults: [2, 3, 4, 4]
+      norm: rms
+      outer: false
+      outscale: 1.0
+      strided: false
+      units: 128
+      winit: trunc_normal_in
+    typ: simple
+  direct_transformer: {accept_layers: 1, accept_units: 64, act: silu, 
+      actor_outscale: 0.01, bins: 255, d_model: 64, ffup: 2, heads: 4, layers: 2,
+    norm: rms, output: symexp_twohot, outscale: 1.0, qknorm: none, rope: false, 
+      unimix: 0.01, value_layers: 2, value_outscale: 0.0, value_units: 128, 
+      winit: trunc_normal_in}
+  dyn:
+    rssm: {absolute: false, act: silu, blocks: 8, classes: 24, deter: 128, 
+        dynlayers: 1, free_nats: 1.0, hidden: 128, imglayers: 2, norm: rms, 
+        obslayers: 1, outscale: 1.0, stoch: 24, unimix: 0.01, winit: 
+        trunc_normal_in}
+    typ: rssm
+  enc:
+    simple:
+      act: silu
+      depth: 64
+      kernel: 5
+      layers: 2
+      mults: [2, 3, 4, 4]
+      norm: rms
+      outer: false
+      strided: false
+      symlog: true
+      units: 128
+      winit: trunc_normal_in
+    typ: simple
+  head_fusion:
+    deter_dim: 128
+    feat_units: [128]
+    global_units: [92, 32]
+    landscape_units: [256]
+    stoch_units: 128
+  horizon: 333
+  imag_branch_first_only: true
+  imag_branch_samples: 1
+  imag_branch_unique: true
+  imag_last: 4
+  imag_length: 15
+  imag_loss: {actent: 0.001, lam: 0.95, slowreg: 1.0, slowtar: false}
+  loss_scales: {con: 1.0, dyn: 1.0, landscape_rec: 0.0, osi: 1.0, pol_warmup: 
+      1.0, policy: 1.0, private_rank: 0.0, probe_opponent: 0.0, probe_values: 
+      0.0, probe_weights: 0.0, q: 0.0, rec: 1.0, rep: 0.1, repq: 0.0, repval: 
+      0.3, rew: 1.0, value: 1.0, varibad_kl: 0.0, varibad_offer: 0.0, 
+      varibad_reward: 0.0, varibad_task: 0.0}
+  opt: {agc: 0.3, anneal: 0, beta1: 0.9, beta2: 0.999, eps: 1e-20, lr: 4e-05, 
+      momentum: true, schedule: const, warmup: 1000, wd: 0.0}
+  osi:
+    detach_actor: true
+    dim: 8
+    head: {act: silu, layers: 2, norm: rms, output: gaussian_table, outscale: 
+        1.0, units: 128, winit: trunc_normal_in}
+    ramp_frac: 0.5
+    schedule: env_steps
+    target: theta
+    use: true
+    warmup_frac: 0.2
+  policy: {accept_delay_coef: 0.0, act: silu, delay_power: 2.0, e_max: 50.0, 
+      e_min: 2.0, layers: 2, maxstd: 1.0, minstd: 0.1, norm: rms, 
+      offer_delay_coef: 0.0, outscale: 0.01, rho_delay_coef: 0.0, 
+      rho_delay_power: 1.0, u_max_max: 1.0, u_max_min: 0.9, unimix: 0.01, units: 
+      200, winit: trunc_normal_in}
+  policy_dist_cont: bounded_normal
+  policy_dist_disc: categorical
+  probe:
+    classifier: {act: silu, layers: 2, norm: rms, outscale: 1.0, unimix: 0.01, 
+        units: 128, winit: trunc_normal_in}
+    head: {act: silu, layers: 2, norm: rms, output: mse, outscale: 1.0, units: 
+        128, winit: trunc_normal_in}
+    max_issues: 6
+    max_values: 5
+    opponents: 4
+  proposal_landscape:
+    d_model: 64
+    detach_heads: true
+    embed_units: 64
+    ffup: 2
+    heads: 4
+    hidden_units: [1024, 512]
+    latent_act: false
+    latent_units: 256
+    mode: flat
+    num_seeds: 8
+    outscale: 1.0
+    qknorm: none
+    rope: false
+    sab_layers: 2
+    token_layers: 1
+    transformer_ffup: 2
+    transformer_heads: 4
+    transformer_layers: 2
+    transformer_outscale: 1.0
+    transformer_qknorm: none
+    transformer_rope: false
+  qlearn: {huber: 1.0, target_every: 1, target_rate: 0.01, tau_max: 1.0, tau_min: 
+      0.05, total_train_steps: 1000000, unimix: 0.01}
+  repl_loss: {lam: 0.95, slowreg: 1.0, slowtar: false}
+  report: true
+  report_gradnorms: false
+  repval_grad: true
+  repval_loss: true
+  retnorm: {debias: false, impl: perc, limit: 1.0, perchi: 95.0, perclo: 5.0, 
+      rate: 0.01}
+  reward_grad: true
+  reward_target: env
+  rewcon_switch: {threshold: 0.3}
+  rewhead: {act: silu, bins: 255, layers: 1, norm: rms, output: symexp_twohot, 
+      outscale: 0.0, units: 1024, winit: trunc_normal_in}
+  slowvalue: {every: 1, rate: 0.02}
+  task_belief: {latent_dim: 32, layers: 2, outscale: 1.0, units: 96}
+  utility_band: {k_fixed: 1000.0, k_max: 200.0, k_mid1: 10.0, k_mid2: 20.0, 
+      k_start: 30.0, mask_alpha: 5.0, schedule_frac: 0.8}
+  valnorm: {impl: none, limit: 1e-08, rate: 0.01}
+  value: {act: silu, bins: 255, layers: 2, norm: rms, output: symexp_twohot, 
+      outscale: 0.0, units: 1024, winit: trunc_normal_in}
+  varibad:
+    decoder_layers: [96]
+    num_tasks: 27
+agent_module: 
+  agent_anl_fixed_varibad_osi_gaussian_encoder_c_landscape_pmalite_b_td_utility_band_compact
+batch_length: 16
+batch_size: 8
+clock_addr: ''
+clock_port: ''
+consec_report: 1
+consec_train: 1
+env:
+  anl: {max_issues: 10, max_steps: 100, max_values: 10, opponent_type: linear, 
+      scenario: random, scenarios_root: '', self_profile_mode: random, type_mode: 
+      random}
+  anlfixed: {max_steps: 100, opponent_type: linear, order_mode: random, 
+      osi_global_offset_steps: 400000, osi_global_total_steps: 2000000, 
+      reward_mode: dreamer_anac_score, scenario: random, scenarios_root: '', 
+      self_profile_mode: random, selfplay_pool_dir: 
+      /workspace/dreamerv3-negotiation/logdir/anl_fixed/miya_dreambelief_selfplay_pool/globalalpha_anacbest_private_reward_theta_directmix_counts_rawaux_policy200_osisg_dreamerreward_targetctx_dualvalue_ver44_200k_x10,
+    synthetic_scenarios: 200, type_mode: random}
+  atari:
+    actions: all
+    aggregate: max
+    autostart: false
+    clip_reward: false
+    gray: true
+    lives: unused
+    noops: 30
+    pooling: 2
+    repeat: 4
+    resize: pillow
+    size: [96, 96]
+    sticky: true
+  atari100k:
+    actions: needed
+    autostart: false
+    clip_reward: false
+    gray: false
+    lives: unused
+    noops: 30
+    repeat: 4
+    resize: pillow
+    size: [64, 64]
+    sticky: false
+  confirm: {max_issues: 6, max_steps: 100, max_values: 5, opponent_type: random, 
+      order_mode: random, scenario: random, scenarios_root: '', 
+      self_profile_mode: random}
+  crafter:
+    logs: false
+    size: [64, 64]
+  dmc:
+    camera: -1
+    image: true
+    proprio: true
+    repeat: 1
+    size: [64, 64]
+  dmlab:
+    episodic: true
+    repeat: 4
+    size: [64, 64]
+    use_seed: true
+  loconav:
+    camera: -1
+    repeat: 1
+    size: [64, 64]
+  minecraft:
+    break_speed: 100.0
+    length: 36000
+    logs: false
+    size: [64, 64]
+  negotiation:
+    eval_param_mode: ''
+    issue_sizes: [5, 5, 5]
+    max_steps: 100
+    opponent_concession_e: 1.0
+    opponent_type: time_dependence
+    opponent_u_max: 1.0
+    param_mode: random
+    random_block_after_steps: 0
+    random_block_episodes: 100
+    random_fixed_cycle_fixed_episodes: 100
+    random_fixed_cycle_random_episodes: 50
+    reward_shaping_beta: 5.0
+    reward_shaping_coef: 0.0
+    reward_shaping_mode: indicator
+    type_mode: fixed
+  procgen:
+    resize: pillow
+    size: [96, 96]
+errfile: false
+ipv6: false
+jax:
+  compute_dtype: bfloat16
+  coordinator_address: ''
+  debug: false
+  enable_policy: true
+  expect_devices: 0
+  jit: true
+  mock_devices: 0
+  platform: cuda
+  policy_devices: [0]
+  prealloc: true
+  profiler: true
+  train_devices: [0]
+logdir: 
+  logdir/anl_fixed/miya_dreambelief_selfplay_globalalpha_anacbest_private_reward_theta_directmix_counts_rawaux_policy200_osisg_dreamerreward_targetctx_dualvalue/ver44_200k_x10/round_002/seed0_200000
+logger:
+  filter: score|length|fps|ratio|train/loss/|train/rand/
+  fps: 15
+  outputs: [jsonl, scope]
+  timer: true
+  user: ''
+method: name
+random_agent: false
+replay:
+  chunksize: 1024
+  fracs: {priority: 0.0, recency: 0.0, uniform: 1.0}
+  online: true
+  prio: {exponent: 0.8, initial: inf, maxfrac: 0.5, zero_on_sample: true}
+  priosignal: model
+  recexp: 1.0
+  size: 5000000.0
+replay_context: 1
+replica: 0
+replicas: 1
+report_length: 16
+run:
+  actor_addr: localhost:{auto}
+  actor_batch: -1
+  actor_threads: 1
+  agent_process: false
+  debug: true
+  duration: 0
+  envs: 4
+  episode_timeout: 180
+  eval_envs: 1
+  eval_eps: 100
+  eval_every: 10000
+  from_checkpoint: 
+    /workspace/dreamerv3-negotiation/logdir/anl_fixed/miya_dreambelief_selfplay_globalalpha_anacbest_private_reward_theta_directmix_counts_rawaux_policy200_osisg_dreamerreward_targetctx_dualvalue/ver44_200k_x10/round_001/seed0_200000/ckpt_best/20260621T095952F012350
+  from_checkpoint_regex: ''
+  log_every: 120
+  logger_addr: localhost:{auto}
+  remote_envs: false
+  remote_replay: false
+  replay_addr: localhost:{auto}
+  report_batches: 1
+  report_every: 10000
+  save_best_by: eval/anac_score_mean
+  save_every: 10000
+  steps: 200000.0
+  train_ratio: 32.0
+  usage: {gc: false, gputil: false, malloc: false, nvsmi: true, psutil: true}
+script: train_eval
+seed: 0
+task: anlfixed_fixed

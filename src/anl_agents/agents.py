@@ -72,6 +72,7 @@ def get_agents(  # type: ignore
     winners_only: bool = False,
     top_only: int | float | None = None,
     ignore_failing=False,
+    skip_failing_agents=False,
     as_class: Literal[False] = False,
 ) -> tuple[str, ...]: ...
 
@@ -86,6 +87,7 @@ def get_agents(
     winners_only: bool = False,
     top_only: int | float | None = None,
     ignore_failing=False,
+    skip_failing_agents=False,
     as_class: Literal[True] = True,
 ) -> tuple[type[SAONegotiator] | type[ANL2025Negotiator], ...]: ...
 
@@ -99,6 +101,7 @@ def get_agents(
     winners_only: bool = False,
     top_only: int | float | None = None,
     ignore_failing=False,
+    skip_failing_agents=False,
     as_class: bool = True,
 ) -> tuple[type[SAONegotiator] | type[ANL2025Negotiator] | str, ...]:
     """
@@ -122,7 +125,7 @@ def get_agents(
     """
     if version in ("all", "any"):
         results = []
-        for v in (2024, 2025, "contrib"):
+        for v in (2024, 2025, 2026, "contrib"):
             results += list(
                 get_agents(  # type: ignore
                     v,
@@ -134,7 +137,7 @@ def get_agents(
                     as_class=as_class,  # type: ignore
                 )
             )
-        if ignore_failing:
+        if ignore_failing or skip_failing_agents:
             results = [
                 _ for _ in results if get_full_type_name(_) not in FAILING_AGENTS.keys()
             ]
@@ -354,6 +357,19 @@ def get_agents(
                     [],
                 )
             )
+    elif isinstance(version, int) and version == 2026:
+        # 2026 participants are generated into anl2026/ + registry.py by
+        # scmlweb/python/update_agents_repo.py. Membership is track-agnostic
+        # for ANL; `qualified_only` drops disqualified entries. Finalists /
+        # winners stay empty until announced (set_finalists/set_winners).
+        from anl_agents.registry import get_participants
+
+        classes = get_participants(
+            2026,
+            qualified_only=qualified_only,
+            finalists_only=finalists_only,
+            winners_only=winners_only,
+        )
     elif isinstance(version, str) and version == "contrib":
         classes = tuple()
     else:
@@ -366,7 +382,7 @@ def get_agents(
     else:
         classes = tuple(get_full_type_name(_) for _ in classes)  # type: ignore
 
-    if ignore_failing:
+    if ignore_failing or skip_failing_agents:
         classes = tuple(
             [_ for _ in classes if get_full_type_name(_) not in FAILING_AGENTS.keys()]
         )

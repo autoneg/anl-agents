@@ -12,7 +12,17 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
-dependencies = ["anl>=0.1.13", "anl2025>=0.1.6", "tensorflow", "torch", "numpy"]
+dependencies = [
+    "negmas>=0.15.7",
+    "anl>=0.1.13",
+    "anl2025>=0.1.7",
+    "tensorflow",
+    "torch",
+    # numpy 2.2.x: >=2.2 for numpy.lib.introspect (used by a 2026 agent),
+    # <2.3 to satisfy the bundled scipy.
+    "numpy>=2.2,<2.3",
+    "xgboost",
+]
 
 [build-system]
 # requires = ["hatchling"]
