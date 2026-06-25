@@ -34,46 +34,7 @@ get_agents(version=2024, track="advantage", finalists_only=True, top_only=0.1, a
 ```
 
 
-# Winners of the ANL 2025 Competition
-
-- First Place (tie): RUFL
-- First Place (tie): SacAgent
-- Third Place: UfunAtAgent
-
-You can get these agents after installing anl-agents by running:
-
-```bash
-get_agents(2025, winners_only=True)
-```
-
-
-# Winners of the ANL 2024 Competition
-
-## Advantage Track
-
-- First Place: Shochan
-- Second Place: UOAgent
-- Third Place: AgentRenting2024
-
-You can get these agents after installing anl-agents by running:
-
-```bash
-get_agents(2024, track="advantage", winners_only=True)
-```
-
-## Nash Track
-
-- First Place: Shochan
-
-You can get this agent after installing anl-agents by running:
-
-```bash
-get_agents(2024, track="nash", winners_only=True)
-```
-
-# Installation Note
-
-If you are on Apple M1, you will need to install tensorflow **before** installing this package on conda using the method described [here](https://developer.apple.com/metal/tensorflow-plugin/)
+<!-- BEGIN generated standings region -->
 
 <!-- BEGIN generated standings: 2026 -->
 
@@ -131,8 +92,106 @@ get_agents(2026, qualified_only=True)
 
 <!-- END generated standings: 2026 -->
 
+<!-- BEGIN generated standings: 2025 -->
+
+## ANAC 2025 Results
+
+### Qualified agents (17)
+
+| # | Agent | ID | Author | Team | Institute | Country |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | a4e | 20680 | カズマ | チーム298 | Tokyo University of Agriculture and Technology | Japan |
+| 2 | Astrat3m | 20407 | Yunfei Wang | ChongqingAgent | Chongqing Jiaotong University | China |
+| 3 | CARC2025 | 21892 | carc (anl2025) | carc (anl2025) | — | — |
+| 4 | eoh_agent | 20711 | Hallel Weinberg | EOH | Bar-Ilan University | Israel |
+| 5 | JeemNegotiator1 | 20485 | Mark Vexler | Team 291 | Bar-Ilan University | Israel |
+| 6 | kAgent | 20744 | kon | Team 309 | colleagues | Japan |
+| 7 | KDY | 20543 | Yuji Kobayashi | Tema KDY | Tokyo University of Agriculture and Technology | Japan |
+| 8 | OzUAgent | 21893 | team_156 | team_156 | — | — |
+| 9 | ProbaBot | 20424 | Loes Peters | Team 273 | Centrum Wiskunde & Informatica (CWI) | Netherlands |
+| 10 | RivAgent | 20400 | Jumpei Kawahara | Natures | Tokyo University of Agriculture and Technology | Japan |
+| 11 | RUFL | 20826 | Garrett Seo | Team 271 | Rutgers University | United States |
+| 12 | SacAgent | 20805 | Hosssein Savari | University of Tehran | University of Tehran | Iran |
+| 13 | Smart Negotiator | 20442 | Jonathan Mandl | Dream Team | Bar-Ilan University | Israel |
+| 14 | StarGold15 | 20700 | Or Aharoni | Team 287 | Bar-Ilan University | Israel |
+| 15 | TheMemorizer | 20715 | Ido | Team 307 | Bar-Ilan University | Israel |
+| 16 | UfunATAgent | 21894 | team_305 | team_305 | — | — |
+| 17 | Wagent | 20572 | Yunfei Wang | Team 300 | Chongqing Jiaotong University | China |
+
+<!-- END generated standings: 2025 -->
+
+<!-- BEGIN generated standings: 2024 -->
+
+## ANAC 2024 Results
+
+### Qualified agents (22)
+
+| # | Agent | ID | Author | Team | Institute | Country |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | Agent007 | 20359 | Talha Özer | Team 236 | Özyeğin University | Türkiye |
+| 2 | AgentKB | 21891 | teamkb (anl2024) | teamkb (anl2024) | — | — |
+| 3 | AgentNyan | 20161 | Ryota Arakawa | Team 123 | Tokyo University of Agriculture and Technology | Japan |
+| 4 | AgentRenting2024 | 20245 | Mick Elshout | Team Renting | Utrecht University | Netherlands |
+| 5 | AntiAgent | 20238 | Panagiotis Aronis | AntiAgents | Utrecht University | Netherlands |
+| 6 | BargainBot | 20280 | Dmitrii Ratusniuc | Team 209 | Utrecht University | Netherlands |
+| 7 | BidBot | 20365 | Azra Oymaagac | Team 240 | Özyeğin University | Türkiye |
+| 8 | CARCAgent | 20344 | Tianzi Ma | CARC | Harbin Institute of Technology, Shenzhen | China |
+| 9 | chaos-agent-anl | 20248 | Ayan Sengupta | AloneInTokyo | Independent | Japan |
+| 10 | Goldie | 20282 | Ethan Beaird | Tulsa Eulers | University of Tulsa | United States |
+| 11 | Group6 | 20357 | Asim Ozturk | Team 235 | Özyeğin University | Türkiye |
+| 12 | INegotiator | 21889 | team_191 | team_191 | — | — |
+| 13 | KatlaNirAgent | 20362 | Omer Bartfeld | TipsOnly | College of Management Academic Studies | Israel |
+| 14 | KosAgent | 20269 | Kosuke Nakata | Team 205 | Tokyo University of Agriculture and Technology | Japan |
+| 15 | MissG | 20226 | Bug Lee | Team 182 | Utrecht University | Netherlands |
+| 16 | MyAgent86 | 20364 | Arda Kucuk | Team 234 | Özyeğin University | Türkiye |
+| 17 | Nayesian2 | 21888 | susumu | susumu | — | — |
+| 18 | Shochan | 20168 | takayama | takafam | Tokyo University of Agriculture and Technology | Japan |
+| 19 | SliBwaTer | 20231 | Pieter van der Werff | Team Twistin' | Utrecht University | Netherlands |
+| 20 | TAKAgent | 21890 | team_232 | team_232 | — | — |
+| 21 | The Dealmaker | 20230 | Ilan Brilovitch | Team 186 | College of Management Academic Studies | Israel |
+| 22 | UOAgent | 20277 | Hirotada Matsumoto | Team moto | Tokyo University of Agriculture and Technology | Japan |
+
+<!-- END generated standings: 2024 -->
+
+<!-- END generated standings region -->
+
+# Winners of the ANL 2025 Competition
+
+- First Place (tie): RUFL
+- First Place (tie): SacAgent
+- Third Place: UfunAtAgent
+
+You can get these agents after installing anl-agents by running:
+
+```bash
+get_agents(2025, winners_only=True)
+```
 
 
+# Winners of the ANL 2024 Competition
 
+## Advantage Track
 
+- First Place: Shochan
+- Second Place: UOAgent
+- Third Place: AgentRenting2024
 
+You can get these agents after installing anl-agents by running:
+
+```bash
+get_agents(2024, track="advantage", winners_only=True)
+```
+
+## Nash Track
+
+- First Place: Shochan
+
+You can get this agent after installing anl-agents by running:
+
+```bash
+get_agents(2024, track="nash", winners_only=True)
+```
+
+# Installation Note
+
+If you are on Apple M1, you will need to install tensorflow **before** installing this package on conda using the method described [here](https://developer.apple.com/metal/tensorflow-plugin/)
