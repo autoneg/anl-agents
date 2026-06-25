@@ -6,6 +6,7 @@ from the local DB + restores by scmlweb/python/update_agents_repo.py;
 finalists/winners are populated once announced, so for now every
 qualified participant is also the full set.
 """
+
 import warnings
 
 from pytest import mark
@@ -25,7 +26,7 @@ QUALIFIED_2026 = get_agents(2026, as_class=True, qualified_only=True)
 
 def test_get_agents_2026_all():
     agents = get_agents(2026, as_class=False)
-    assert len(agents) == 37
+    assert len(agents) == 39
 
 
 def test_get_agents_2026_qualified_excludes_disqualified():
@@ -40,9 +41,7 @@ def test_get_agents_2026_finalists_winners_pending():
     assert len(get_agents(2026, winners_only=True)) == 0
 
 
-@mark.parametrize(
-    "agent", QUALIFIED_2026, ids=[a.__name__ for a in QUALIFIED_2026]
-)
+@mark.parametrize("agent", QUALIFIED_2026, ids=[a.__name__ for a in QUALIFIED_2026])
 def test_can_run_2026(agent):
     """Each agent must complete a small ANL-2024-style tournament."""
     anl2024_tournament(
