@@ -1,1 +1,6 @@
-negmas>=0.15.4, scikit-learn, numpy, rich, typer, pytest,
+negmas>=0.15.4
+scikit-learn
+numpy
+rich
+typer
+pytest
