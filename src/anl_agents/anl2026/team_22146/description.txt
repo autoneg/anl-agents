@@ -1,2 +1,0 @@
-The "Staborn Negotiator" chooses one outcome that reaches ~75% of the maximum achievable utility, and keeps offering this outcome to the opponent. If the opponent counter-offers an outcome with better utility, the agent accepts; or if it is near the end (98% of relative time), the agent accepts any rational outcome.
-In the meantime, the Staborn negotiator employs a frequency-based opponent modelling, i.e., keeps the frequency of visiting each value for all issues.

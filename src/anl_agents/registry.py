@@ -304,6 +304,20 @@ _REGISTRY: dict = json.loads(r"""
             }
         },
         {
+            "class_path": "anl_agents.anl2026.team_21600.agent_tokyo_v11.AgentTokyoV11",
+            "metadata": {
+                "finalist": false,
+                "winner": false,
+                "qualified": false,
+                "disqualified": true,
+                "uses_llm": false,
+                "has_report": false,
+                "has_description": false,
+                "team_id": "21600",
+                "name": "TokyoV11"
+            }
+        },
+        {
             "class_path": "anl_agents.anl2026.team_21621.aoa.AOA008",
             "metadata": {
                 "finalist": false,
@@ -357,6 +371,20 @@ _REGISTRY: dict = json.loads(r"""
                 "has_description": true,
                 "team_id": "21688",
                 "name": "BalanceAgent"
+            }
+        },
+        {
+            "class_path": "anl_agents.anl2026.team_21697.phantom8_negotiator.Phantom8Negotiator",
+            "metadata": {
+                "finalist": false,
+                "winner": false,
+                "qualified": false,
+                "disqualified": true,
+                "uses_llm": false,
+                "has_report": false,
+                "has_description": false,
+                "team_id": "21697",
+                "name": "phantom_etneg"
             }
         },
         {
@@ -479,7 +507,7 @@ _REGISTRY: dict = json.loads(r"""
                 "qualified": true,
                 "disqualified": false,
                 "uses_llm": false,
-                "has_report": false,
+                "has_report": true,
                 "has_description": true,
                 "team_id": "22146",
                 "name": "Staborn Negotiator"

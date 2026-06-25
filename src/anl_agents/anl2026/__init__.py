@@ -5,7 +5,7 @@ import importlib as _importlib
 __all__ = []
 __import_errors__ = {}
 
-_TEAMS = ["team_20462", "team_20829", "team_20963", "team_21043", "team_21044", "team_21102", "team_21124", "team_21140", "team_21328", "team_21329", "team_21350", "team_21353", "team_21369", "team_21381", "team_21413", "team_21565", "team_21569", "team_21573", "team_21584", "team_21589", "team_21621", "team_21639", "team_21676", "team_21688", "team_21728", "team_21759", "team_21762", "team_21786", "team_21795", "team_21802", "team_21810", "team_22139", "team_22146", "team_22257", "team_22271", "team_22289", "team_22290"]
+_TEAMS = ["team_20462", "team_20829", "team_20963", "team_21043", "team_21044", "team_21102", "team_21124", "team_21140", "team_21328", "team_21329", "team_21350", "team_21353", "team_21369", "team_21381", "team_21413", "team_21565", "team_21569", "team_21573", "team_21584", "team_21589", "team_21600", "team_21621", "team_21639", "team_21676", "team_21688", "team_21697", "team_21728", "team_21759", "team_21762", "team_21786", "team_21795", "team_21802", "team_21810", "team_22139", "team_22146", "team_22257", "team_22271", "team_22289", "team_22290"]
 
 for _t in _TEAMS:
     try:
