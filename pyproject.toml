@@ -18,9 +18,7 @@ dependencies = [
     "anl2025>=0.1.7",
     "tensorflow",
     "torch",
-    # numpy 2.2.x: >=2.2 for numpy.lib.introspect (used by a 2026 agent),
-    # <2.3 to satisfy the bundled scipy.
-    "numpy>=2.2,<2.3",
+    "numpy",
     "xgboost",
 ]
 

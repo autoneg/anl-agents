@@ -5,8 +5,6 @@ from negmas.preferences import LambdaMultiFun, LinearAdditiveUtilityFunction
 from negmas.preferences.value_fun import TableFun
 from bisect import bisect_right
 
-from numpy.lib.introspect import opt_func_info
-
 
 class StaBornNeg(SAOCallNegotiator):
     """
