@@ -40,6 +40,34 @@ get_agents(version=2024, track="advantage", finalists_only=True, top_only=0.1, a
 
 ## ANAC 2026 Results
 
+### Finalists (17)
+
+| # | Agent | ID | Author | Team | Institute | Country |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | AaNanteLucky | 21329 | Rinon Asanuma | Team 376 | Tokyo University of Agriculture and Technology | Japan |
+| 2 | AgentNexus_2.0 | 21639 | Nishanth Rajan | Team 407 | Leibniz Universität Hannover | Germany |
+| 3 | Anchor | 21786 | David Izhaki | Team 512 | Bar-Ilan University | Israel |
+| 4 | AOA007 | 21621 | Achiya Zigler | AOA007 | Bar-Ilan University | Israel |
+| 5 | BadIronV4 | 21565 | Itamar Hassidim | Team 408 | Bar-Ilan University | Israel |
+| 6 | BalanceAgent | 21688 | Tianzi Ma | CARC | Harbin Institute of Technology, Shenzhen | China |
+| 7 | BetterCallAgentInfinityV1000 | 21762 | Steffan Wolter | BetterCallAgent | Leibniz Universität Hannover | Germany |
+| 8 | ChangAgent | 21381 | Shengbo Chang | tnap | Tokyo University of Agriculture and Technology | Japan |
+| 9 | HalucinatorAgent2026 | 21676 | Gayathri Rajeev | Hallucinators | Leibniz Universität Hannover | Germany |
+| 10 | Ianos | 20963 | Konstantinos Katsaras | Team 340 | University of Macedonia | Greece |
+| 11 | MirageV145 | 22289 | Avinash Pathak | Team 422 | Independent | India |
+| 12 | PerikosV3 | 22271 | Kosuke Nakata | Team 412 | Tokyo University of Agriculture and Technology | Japan |
+| 13 | Phantom8 | 21810 | Jeremy Hui | Team 358 | Rutgers University | United States |
+| 14 | SBDANL | 22290 | Hajime Endo | Team Ukku | Tokyo University of Agriculture and Technology | Japan |
+| 15 | Snake | 20829 | HIROTADA Matsumoto | Team 195 | Tokyo University of Agriculture and Technology | Japan |
+| 16 | Staborn Negotiator | 22146 | Athina Georgara | Team 505 | University of Southampton | United Kingdom |
+| 17 | WhaleV0.2 | 21350 | Omri Perry | Whales | Bar-Ilan University | Israel |
+
+Get them after install with:
+
+```python
+get_agents(2026, finalists_only=True)
+```
+
 ### Qualified agents (37)
 
 | # | Agent | ID | Author | Team | Institute | Country |

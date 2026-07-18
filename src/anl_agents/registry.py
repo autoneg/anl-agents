@@ -40,7 +40,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_20829.snake_agent.Snake",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -54,7 +54,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_20963.anl2026.ianos.ianos.Ianos",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -152,7 +152,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_21329.aa_nante_lucky.AaNanteLucky",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -166,7 +166,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_21350.whale.WhaleNegotiator",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -208,7 +208,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_21381.chang_agent.ChangAgent",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -236,7 +236,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_21565.badiron.Badiron",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -320,7 +320,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_21621.aoa.AOA008",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -334,7 +334,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_21639.agentnexus.AgentNexus",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -348,7 +348,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_21676.hallucinators.Hallucinators",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -362,7 +362,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_21688.balanceok.BalanceOKNegotiator",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -418,7 +418,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_21762.better_call_agent_infinity_v1000.BetterCallAgentInfinityV1000",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -432,7 +432,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_21786.anchor.AnchorNegotiator",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -474,7 +474,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_21810.phantom8_negotiator.Phantom8Negotiator",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -502,7 +502,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_22146.staborn_negotiator.StaBornNeg",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -530,7 +530,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_22271.perikos_v3.PerikosV3",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -544,7 +544,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_22289.mirage_v145.MirageV145",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
@@ -558,7 +558,7 @@ _REGISTRY: dict = json.loads(r"""
         {
             "class_path": "anl_agents.anl2026.team_22290.sbdanl.SBDANL",
             "metadata": {
-                "finalist": false,
+                "finalist": true,
                 "winner": false,
                 "qualified": true,
                 "disqualified": false,
