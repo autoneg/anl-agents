@@ -1,6 +1,6 @@
 [project]
 name = "anl-agents"
-version = "0.1.2"
+version = "0.2.0"
 description = "Agents submitted to the ANL league of ANAC 2025 since 2024"
 readme = "README.md"
 requires-python = "~=3.11.0"
