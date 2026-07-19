@@ -3,8 +3,7 @@
 Mirrors test_agents2025.py (registry counts) and test_tournament.py
 (actually running each agent). The full participant set is materialised
 from the local DB + restores by scmlweb/python/update_agents_repo.py;
-finalists/winners are populated once announced, so for now every
-qualified participant is also the full set.
+winners are populated once announced.
 """
 
 import warnings
@@ -35,9 +34,12 @@ def test_get_agents_2026_qualified_excludes_disqualified():
     assert len(get_agents(2026, qualified_only=True)) == 37
 
 
-def test_get_agents_2026_finalists_winners_pending():
-    # Populated by set_finalists.py / set_winners.py once announced.
-    assert len(get_agents(2026, finalists_only=True)) == 0
+def test_get_agents_2026_finalists():
+    assert len(get_agents(2026, finalists_only=True)) == 17
+
+
+def test_get_agents_2026_winners_pending():
+    # Populated by set_winners.py once announced.
     assert len(get_agents(2026, winners_only=True)) == 0
 
 
