@@ -15,7 +15,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        # windows-latest excluded: tensorflow's tensorflow-io-gcs-filesystem
+        # dependency ships no Windows wheel, so the project can't install there.
+        os: [ubuntu-latest, macos-latest]
         python-version: ["3.11"]
     steps:
       - uses: "actions/checkout@v4"
