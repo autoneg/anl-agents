@@ -2,12 +2,13 @@ import os
 
 import joblib
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 
 def exponential_scc(y_true, y_pred):
+    # Imported here (not at module scope) so that importing this module does not
+    # pull in TensorFlow. See __init__ for the lazy model-loading imports.
+    import tensorflow as tf
+
     # Standard sparse categorical crossentropy for the base loss
     base_loss = tf.keras.losses.categorical_crossentropy(y_true, y_pred)
 
@@ -90,6 +91,8 @@ class ReservationValuePredictor(object):
     model = None
 
     def __init__(self):
+        from tensorflow.keras.models import load_model
+
         # Recreate the model architecture
         self.model = load_model(
             os.path.dirname(__file__) + "/model/model1-v4_phase2.keras",
@@ -118,6 +121,8 @@ class ReservationValuePredictor(object):
         opp_nash_point_util,
         certainty_minimum=0.8,
     ):
+        from tensorflow.keras.preprocessing.sequence import pad_sequences
+
         # Assuming the transformation functions and padding return correctly shaped arrays
         history_set = np.array([history])
         history_set = self.transform_history(history_set)
