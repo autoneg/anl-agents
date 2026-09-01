@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/);
 version numbers correspond to releases published on [PyPI](https://pypi.org/project/anl-agents/).
 
+## [Unreleased]
+
+- Hooked torch's global RNG into negmas's `seed_all` (via `register_seeder`), so
+  `NEGMAS_RAND_SEED` also makes the torch-based agents reproducible. No-op when
+  the variable is unset or negmas is too old to expose `negmas.helpers.rand`.
+
 ## [0.2.0] - 2026-07-19
 
 - Added ANL 2026 agent submissions and qualification tracking.
