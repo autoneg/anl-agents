@@ -252,7 +252,7 @@ def _find_domain_and_profiles(scenario_dir: Path) -> tuple[Path, list[Path]]:
     domains = [
         path
         for path, data in loaded
-        if data.get("type") == "DiscreteCartesianOutcomeSpace" and data.get("issues")
+        if data.get("type") == "EnumerableCartesianOutcomeSpace" and data.get("issues")
     ]
     if len(domains) != 1:
         raise ValueError(

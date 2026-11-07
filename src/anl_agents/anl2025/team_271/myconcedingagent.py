@@ -19,7 +19,7 @@ from helpers.helperfunctions import *
 from anl2025.negotiator import ANL2025Negotiator
 from negmas.sao.controllers import SAOController, SAOState
 from negmas import (
-    DiscreteCartesianOutcomeSpace,
+    EnumerableCartesianOutcomeSpace,
     ExtendedOutcome,
     ResponseType, CategoricalIssue,
 )
