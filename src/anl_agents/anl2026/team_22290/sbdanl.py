@@ -99,7 +99,7 @@ class SBDANL(SAOCallNegotiator):
         # Opponent model state: per-issue value frequency counts.
         self._issues = list(self.nmi.outcome_space.issues)
         self._issue_values = [
-            list(i.all) if i.is_discrete() else None for i in self._issues
+            list(i.all) if i.is_finite() else None for i in self._issues
         ]
         self._counts: list[dict] = [
             {v: 0.0 for v in vals} if vals is not None else {}
