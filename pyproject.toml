@@ -13,7 +13,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
 ]
 dependencies = [
-    "negmas>=0.15.7",
+    "negmas>=0.17.0",
     "anl>=0.1.13",
     "anl2025>=0.1.7",
     "tensorflow",
